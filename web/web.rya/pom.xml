@@ -42,8 +42,14 @@ under the License.
         </dependency>
         <dependency>
             <groupId>org.apache.rya</groupId>
+            <artifactId>mongodb.rya</artifactId>
+        </dependency>
+        <!--
+        <dependency>
+            <groupId>org.apache.rya</groupId>
             <artifactId>accumulo.rya</artifactId>
         </dependency>
+        -->
         <dependency>
             <groupId>org.apache.rya</groupId>
             <artifactId>rya.prospector</artifactId>
