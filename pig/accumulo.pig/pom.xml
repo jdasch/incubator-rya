@@ -24,7 +24,7 @@ under the License.
     <parent>
         <groupId>org.apache.rya</groupId>
         <artifactId>rya.pig</artifactId>
-        <version>3.2.10-P-RC1</version>
+        <version>3.2.10-P-RC2</version>
     </parent>
 
     <artifactId>accumulo.pig</artifactId>
