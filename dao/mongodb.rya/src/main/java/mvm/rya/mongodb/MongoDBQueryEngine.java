@@ -52,6 +52,10 @@ import com.mongodb.DBCollection;
 import com.mongodb.DBObject;
 import com.mongodb.MongoClient;
 
+import com.google.common.collect.HashMultimap;
+import com.google.common.collect.Multimap;
+
+
 /**
  * Date: 7/17/12
  * Time: 9:28 AM
@@ -108,7 +112,7 @@ public class MongoDBQueryEngine implements RyaQueryEngine<MongoDBRdfConfiguratio
             conf = configuration;
         }
         Long maxResults = conf.getLimit();
-        Map<DBObject, BindingSet> rangeMap = new HashMap<DBObject, BindingSet>();
+        Multimap<DBObject, BindingSet> rangeMap = HashMultimap.create();
  
         //TODO: cannot span multiple tables here
         try {
