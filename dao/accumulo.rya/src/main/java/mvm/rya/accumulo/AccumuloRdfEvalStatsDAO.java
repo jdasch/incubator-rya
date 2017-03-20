@@ -83,7 +83,7 @@ public class AccumuloRdfEvalStatsDAO implements RdfEvalStatsDAO<AccumuloRdfConfi
 //            boolean tableExists = tos.exists(evalTable);
 //            if (!tableExists)
 //                tos.create(evalTable);
-            initialized = true;
+            setInitialized(true);
         } catch (Exception e) {
             throw new RdfDAOException(e);
         }
@@ -95,7 +95,7 @@ public class AccumuloRdfEvalStatsDAO implements RdfEvalStatsDAO<AccumuloRdfConfi
         if (!isInitialized()) {
             throw new IllegalStateException("Not initialized");
         }
-        initialized = false;
+        setInitialized(false);
     }
 
     @Override
@@ -107,7 +107,7 @@ public class AccumuloRdfEvalStatsDAO implements RdfEvalStatsDAO<AccumuloRdfConfi
         return connector;
     }
 
-    public void setConnector(Connector connector) {
+    public synchronized void setConnector(Connector connector) {
         this.connector = connector;
     }
 
@@ -115,7 +115,7 @@ public class AccumuloRdfEvalStatsDAO implements RdfEvalStatsDAO<AccumuloRdfConfi
         return conf;
     }
 
-    public void setConf(AccumuloRdfConfiguration conf) {
+    public synchronized void setConf(AccumuloRdfConfiguration conf) {
         this.conf = conf;
     }
 
@@ -170,4 +170,8 @@ public class AccumuloRdfEvalStatsDAO implements RdfEvalStatsDAO<AccumuloRdfConfi
 			List<Value> val) throws RdfDAOException {
 		return getCardinality(conf, card, val, null);
 	}
+
+    public synchronized void setInitialized(boolean initialized) {
+        this.initialized = initialized;
+    }
 }

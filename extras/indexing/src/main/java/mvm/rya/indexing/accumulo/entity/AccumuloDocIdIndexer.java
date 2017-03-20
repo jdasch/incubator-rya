@@ -85,10 +85,7 @@ public class AccumuloDocIdIndexer implements DocIdIndexer {
         this.conf = (AccumuloRdfConfiguration) conf;
         //Connector conn = ConfigUtils.getConnector(conf);  
     }
-    
-    
-    
-    
+
     public CloseableIteration<BindingSet, QueryEvaluationException> queryDocIndex(String sparqlQuery,
             Collection<BindingSet> constraints) throws TableNotFoundException, QueryEvaluationException {
     
@@ -97,7 +94,7 @@ public class AccumuloDocIdIndexer implements DocIdIndexer {
         try {
             pq1 = parser.parseQuery(sparqlQuery, null);
         } catch (MalformedQueryException e) {
-            e.printStackTrace();
+            throw new QueryEvaluationException("Malformed query", e);
         }
         
         TupleExpr te1 = pq1.getTupleExpr();
@@ -109,11 +106,7 @@ public class AccumuloDocIdIndexer implements DocIdIndexer {
         } else {
             throw new IllegalArgumentException("Invalid star query!");
         }
-   
     }
-    
-    
-    
     
     @Override
     public CloseableIteration<BindingSet, QueryEvaluationException> queryDocIndex(StarQuery query,

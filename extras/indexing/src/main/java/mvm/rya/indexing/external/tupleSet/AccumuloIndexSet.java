@@ -134,16 +134,17 @@ public class AccumuloIndexSet extends ExternalTupleSet implements ExternalBatchi
         Set<VariableOrder> orders = null;
         try {
 			orders = pcj.getPcjMetadata(accCon, tablename).getVarOrders();
-		} catch (final PcjException e) {
-			e.printStackTrace();
-		}
 
-        varOrder = Lists.newArrayList();
-        for(final VariableOrder var: orders) {
-            varOrder.add(var.toString());
+            varOrder = Lists.newArrayList();
+            for(final VariableOrder var: orders) {
+                varOrder.add(var.toString());
+            }
+            setLocalityGroups(tablename, accCon, varOrder);
+            this.setSupportedVariableOrderMap(varOrder);
+
+        } catch (final PcjException e) {
+            e.printStackTrace();
         }
-        setLocalityGroups(tablename, accCon, varOrder);
-        this.setSupportedVariableOrderMap(varOrder);
     }
 
     /**
@@ -160,27 +161,31 @@ public class AccumuloIndexSet extends ExternalTupleSet implements ExternalBatchi
 			throws MalformedQueryException, SailException,
 			QueryEvaluationException, MutationsRejectedException,
 			TableNotFoundException {
-		PcjMetadata meta = null;
+
+	    this.tablename = tablename;
+        this.accCon = accCon;
+
+        PcjMetadata meta = null;
 		try {
+		    // TODO: should use this.accCon and this.tablename here
 			meta = pcj.getPcjMetadata(accCon, tablename);
-		} catch (final PcjException e) {
-			e.printStackTrace();
-		}
 
-		this.tablename = tablename;
-		this.accCon = accCon;
-		final SPARQLParser sp = new SPARQLParser();
-		final ParsedTupleQuery pq = (ParsedTupleQuery) sp.parseQuery(meta.getSparql(),
-				null);
-		setProjectionExpr((Projection) pq.getTupleExpr());
-		final Set<VariableOrder> orders = meta.getVarOrders();
+    		final SPARQLParser sp = new SPARQLParser();
+    		
+    		final ParsedTupleQuery pq = (ParsedTupleQuery) sp.parseQuery(meta.getSparql(), null);
+    		setProjectionExpr((Projection) pq.getTupleExpr());
 
-		varOrder = Lists.newArrayList();
-		for (final VariableOrder var : orders) {
-			varOrder.add(var.toString());
-		}
-		setLocalityGroups(tablename, accCon, varOrder);
-		this.setSupportedVariableOrderMap(varOrder);
+    		final Set<VariableOrder> orders = meta.getVarOrders();
+    
+    		varOrder = Lists.newArrayList();
+    		for (final VariableOrder var : orders) {
+    			varOrder.add(var.toString());
+    		}
+    		setLocalityGroups(tablename, accCon, varOrder);
+    		this.setSupportedVariableOrderMap(varOrder);
+        } catch (final PcjException e) {
+            e.printStackTrace();
+        }
 	}
 
 	/**

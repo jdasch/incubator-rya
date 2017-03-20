@@ -53,23 +53,22 @@ public class NamespaceManager {
     }
 
     protected void initialize(RyaDAO ryaDAO) {
-        try {
-            this.namespaceManager = ryaDAO.getNamespaceManager();
+        this.namespaceManager = ryaDAO.getNamespaceManager();
 
-            InputStream cacheConfigStream = Thread.currentThread().getContextClassLoader().getResourceAsStream("ehcache.xml");
+        try (InputStream cacheConfigStream = Thread.currentThread().getContextClassLoader().getResourceAsStream("ehcache.xml")) {
             if (cacheConfigStream == null) {
                 this.cacheManager = CacheManager.create();
 //                throw new RuntimeException("Cache Configuration does not exist");
             } else {
                 this.cacheManager = CacheManager.create(cacheConfigStream);
             }
-            this.namespaceCache = cacheManager.getCache(NAMESPACE_CACHE_NAME);
+            
+            this.namespaceCache = cacheManager.getCache(NAMESPACE_CACHE_NAME);            
             if (namespaceCache == null) {
                 cacheManager.addCache(NAMESPACE_CACHE_NAME);
             }
-
-
-        } catch (Exception e) {
+        }
+        catch (Exception e) {
             throw new RuntimeException(e);
         }
     }

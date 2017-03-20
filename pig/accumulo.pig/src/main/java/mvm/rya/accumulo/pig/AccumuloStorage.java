@@ -34,8 +34,8 @@ import java.util.concurrent.TimeUnit;
 
 import org.apache.accumulo.core.Constants;
 import org.apache.accumulo.core.client.AccumuloSecurityException;
-import org.apache.accumulo.core.client.mapreduce.AccumuloInputFormat;
 import org.apache.accumulo.core.client.BatchWriterConfig;
+import org.apache.accumulo.core.client.mapreduce.AccumuloInputFormat;
 import org.apache.accumulo.core.client.mapreduce.AccumuloOutputFormat;
 import org.apache.accumulo.core.client.mapreduce.lib.util.ConfiguratorBase;
 import org.apache.accumulo.core.client.security.tokens.PasswordToken;
@@ -81,24 +81,37 @@ import org.apache.pig.data.TupleFactory;
 public class AccumuloStorage extends LoadFunc implements StoreFuncInterface, OrderedLoadFunc {
     private static final Log logger = LogFactory.getLog(AccumuloStorage.class);
 
+    private String EMPTY_STRING = "";
+
     protected Configuration conf;
     protected RecordReader<Key, Value> reader;
     protected RecordWriter<Text, Mutation> writer;
 
     protected String inst;
     protected String zookeepers;
-    protected String user = "";
-    protected String password = "";
+    protected String user;
+    protected String userp;
     protected String table;
     protected Text tableName;
     protected String auths;
-    protected Authorizations authorizations = Constants.NO_AUTHS;
-    protected List<Pair<Text, Text>> columnFamilyColumnQualifierPairs = new LinkedList<Pair<Text, Text>>();
+    protected Authorizations authorizations;
+    protected List<Pair<Text, Text>> columnFamilyColumnQualifierPairs;
 
-    protected Collection<Range> ranges = new ArrayList<Range>();
-    protected boolean mock = false;
+    protected Collection<Range> ranges;
+    protected boolean mock;
 
     public AccumuloStorage() {
+        this.userp = EMPTY_STRING;
+        this.user = EMPTY_STRING;
+        this.inst = null;
+        this.zookeepers = null;
+        this.table = null;
+        this.tableName = null;
+        this.auths = null;
+        this.authorizations = Constants.NO_AUTHS;
+        this.columnFamilyColumnQualifierPairs = new LinkedList<Pair<Text, Text>>();
+        this.ranges = new ArrayList<Range>();
+        this.mock = false;
     }
 
     @Override
@@ -155,7 +168,7 @@ public class AccumuloStorage extends LoadFunc implements StoreFuncInterface, Ord
 
         if (!ConfiguratorBase.isConnectorInfoSet(AccumuloInputFormat.class, conf)) {
             try {
-				AccumuloInputFormat.setConnectorInfo(job, user, new PasswordToken(password.getBytes()));
+				AccumuloInputFormat.setConnectorInfo(job, user, new PasswordToken(userp.getBytes()));
 			} catch (AccumuloSecurityException e) {
 				throw new RuntimeException(e);
 			}
@@ -201,7 +214,7 @@ public class AccumuloStorage extends LoadFunc implements StoreFuncInterface, Ord
                 } else if (pair[0].equals("user")) {
                     user = pair[1];
                 } else if (pair[0].equals("password")) {
-                    password = pair[1];
+                    userp = pair[1];
                 } else if (pair[0].equals("zookeepers")) {
                     zookeepers = pair[1];
                 } else if (pair[0].equals("auths")) {
@@ -282,7 +295,7 @@ public class AccumuloStorage extends LoadFunc implements StoreFuncInterface, Ord
 
         if (!conf.getBoolean(AccumuloOutputFormat.class.getSimpleName() + ".configured", false)) {
             try {
-				AccumuloOutputFormat.setConnectorInfo(job, user, new PasswordToken(password.getBytes()));
+				AccumuloOutputFormat.setConnectorInfo(job, user, new PasswordToken(userp.getBytes()));
 			} catch (AccumuloSecurityException e) {
 				new RuntimeException(e);
 			}

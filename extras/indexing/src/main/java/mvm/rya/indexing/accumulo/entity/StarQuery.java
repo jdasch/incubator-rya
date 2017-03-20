@@ -478,6 +478,10 @@ public class StarQuery {
 
         }
 
+        if (vars == null) {
+            throw new IllegalStateException("vars cannot be null");         
+        }
+
         if (vars.size() == 1) {
             return vars.iterator().next();
         } else if (vars.size() > 1) {
@@ -502,7 +506,6 @@ public class StarQuery {
         } else {
             throw new IllegalStateException("No common Var!");
         }
-
     }
 
 

@@ -594,6 +594,7 @@ public class AccumuloTemporalIndexer extends AbstractAccumuloIndexer implements 
 			// Any constraints handled here, if the constraints are empty, the
 			// thisKeyParts.contraintPrefix will be null.
 			List<KeyParts> keyParts = KeyParts.keyPartsForQuery(queryInstant, constraints);
+			
 			ScannerBase scanner = null;
 			if (keyParts.size() > 1)
 				scanner = getBatchScanner();
@@ -608,12 +609,16 @@ public class AccumuloTemporalIndexer extends AbstractAccumuloIndexer implements 
 				ranges.add(range);
 				lastKeyParts = thisKeyParts;
 			}
-			//System.out.println("Scanning columns, cf:" + lastKeyParts.cf + "CQ:" + lastKeyParts.cq);
-			scanner.fetchColumn(new Text(lastKeyParts.cf), new Text(lastKeyParts.cq));
-			if (scanner instanceof BatchScanner)
-				((BatchScanner) scanner).setRanges(ranges);
-			else if (range != null)
-				((Scanner) scanner).setRange(range);
+			
+			if (lastKeyParts != null) {
+	            //System.out.println("Scanning columns, cf:" + lastKeyParts.cf + "CQ:" + lastKeyParts.cq);
+	            scanner.fetchColumn(new Text(lastKeyParts.cf), new Text(lastKeyParts.cq));
+	            if (scanner instanceof BatchScanner)
+	                ((BatchScanner) scanner).setRanges(ranges);
+	            else if (range != null)
+	                ((Scanner) scanner).setRange(range);			    
+			}
+			
 			return scanner;
 		}
 	}

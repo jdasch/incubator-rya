@@ -108,7 +108,7 @@ public class InferenceEngine {
         }
     }
 
-    public void refreshGraph() throws InferenceEngineException {
+    public synchronized void refreshGraph() throws InferenceEngineException {
         try {
             //get all subclassof
             Graph graph = TinkerGraphFactory.createTinkerGraph();
@@ -341,7 +341,7 @@ public class InferenceEngine {
         return initialized;
     }
 
-    public void setInitialized(boolean initialized) {
+    public synchronized void setInitialized(boolean initialized) {
         this.initialized = initialized;
     }
 
@@ -349,7 +349,7 @@ public class InferenceEngine {
         return ryaDAO;
     }
 
-    public void setRyaDAO(RyaDAO ryaDAO) {
+    public synchronized void setRyaDAO(RyaDAO ryaDAO) {
         this.ryaDAO = ryaDAO;
     }
 
@@ -357,7 +357,7 @@ public class InferenceEngine {
         return conf;
     }
 
-    public void setConf(RdfCloudTripleStoreConfiguration conf) {
+    public synchronized void setConf(RdfCloudTripleStoreConfiguration conf) {
         this.conf = conf;
     }
 
@@ -373,7 +373,7 @@ public class InferenceEngine {
         return refreshGraphSchedule;
     }
 
-    public void setRefreshGraphSchedule(long refreshGraphSchedule) {
+    public synchronized void setRefreshGraphSchedule(long refreshGraphSchedule) {
         this.refreshGraphSchedule = refreshGraphSchedule;
     }
 
@@ -381,7 +381,7 @@ public class InferenceEngine {
         return symmetricPropertySet;
     }
 
-    public void setSymmetricPropertySet(Set<URI> symmetricPropertySet) {
+    public synchronized void setSymmetricPropertySet(Set<URI> symmetricPropertySet) {
         this.symmetricPropertySet = symmetricPropertySet;
     }
 
@@ -389,7 +389,7 @@ public class InferenceEngine {
         return inverseOfMap;
     }
 
-    public void setInverseOfMap(Map<URI, URI> inverseOfMap) {
+    public synchronized void setInverseOfMap(Map<URI, URI> inverseOfMap) {
         this.inverseOfMap = inverseOfMap;
     }
 
@@ -397,7 +397,7 @@ public class InferenceEngine {
         return transitivePropertySet;
     }
 
-    public void setTransitivePropertySet(Set<URI> transitivePropertySet) {
+    public synchronized void setTransitivePropertySet(Set<URI> transitivePropertySet) {
         this.transitivePropertySet = transitivePropertySet;
     }
 
@@ -405,7 +405,7 @@ public class InferenceEngine {
         return schedule;
     }
 
-    public void setSchedule(boolean schedule) {
+    public synchronized void setSchedule(boolean schedule) {
         this.schedule = schedule;
     }
 }

@@ -24,7 +24,6 @@ package mvm.rya.accumulo.pig;
 import java.io.File;
 import java.io.IOException;
 import java.util.List;
-import java.util.Set;
 import java.util.UUID;
 import java.util.regex.Pattern;
 
@@ -39,7 +38,6 @@ import org.apache.accumulo.core.client.security.tokens.AuthenticationToken;
 import org.apache.accumulo.core.client.security.tokens.PasswordToken;
 import org.apache.accumulo.core.data.Mutation;
 import org.apache.accumulo.core.data.Value;
-import org.apache.accumulo.core.security.Authorizations;
 import org.apache.commons.io.FileUtils;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.conf.Configured;
@@ -48,7 +46,6 @@ import org.apache.hadoop.io.Text;
 import org.apache.hadoop.mapreduce.Counter;
 import org.apache.hadoop.mapreduce.Counters;
 import org.apache.hadoop.mapreduce.Job;
-import org.apache.hadoop.mapreduce.JobContext;
 import org.apache.hadoop.mapreduce.Mapper;
 import org.apache.hadoop.mapreduce.lib.input.TextInputFormat;
 import org.apache.hadoop.util.Tool;
@@ -56,8 +53,6 @@ import org.apache.hadoop.util.ToolRunner;
 import org.apache.log4j.Logger;
 import org.openrdf.query.MalformedQueryException;
 import org.openrdf.query.algebra.Projection;
-import org.openrdf.query.algebra.ProjectionElem;
-import org.openrdf.query.algebra.ProjectionElemList;
 import org.openrdf.query.algebra.TupleExpr;
 import org.openrdf.query.parser.sparql.SPARQLParser;
 
@@ -90,7 +85,13 @@ public class IndexWritingTool extends Configured implements Tool {
         final String passStr = args[5];
         final String tablePrefix = args[6];
 
-        String sparql = FileUtils.readFileToString(new File(sparqlFile));
+        String sparql = null;
+
+        final File sparqlFileInstance = new File(sparqlFile);
+        if (sparqlFileInstance.exists()) {
+            sparql = FileUtils.readFileToString(sparqlFileInstance);
+        }
+        Preconditions.checkNotNull(sparql, "No SPARQL available");
 
         Job job = new Job(getConf(), "Write HDFS Index to Accumulo");
         job.setJarByClass(this.getClass());

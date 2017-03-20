@@ -22,7 +22,6 @@ package mvm.rya.accumulo.query;
 
 
 import static mvm.rya.api.RdfCloudTripleStoreUtils.layoutToTable;
-import info.aduna.iteration.CloseableIteration;
 
 import java.io.IOException;
 import java.util.Collection;
@@ -30,27 +29,6 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Map;
-
-import mvm.rya.accumulo.AccumuloRdfConfiguration;
-import mvm.rya.api.RdfCloudTripleStoreConfiguration;
-import mvm.rya.api.RdfCloudTripleStoreConstants;
-import mvm.rya.api.RdfCloudTripleStoreConstants.TABLE_LAYOUT;
-import mvm.rya.api.RdfCloudTripleStoreUtils;
-import mvm.rya.api.domain.RyaRange;
-import mvm.rya.api.domain.RyaStatement;
-import mvm.rya.api.domain.RyaType;
-import mvm.rya.api.domain.RyaURI;
-import mvm.rya.api.layout.TableLayoutStrategy;
-import mvm.rya.api.persist.RyaDAOException;
-import mvm.rya.api.persist.query.BatchRyaQuery;
-import mvm.rya.api.persist.query.RyaQuery;
-import mvm.rya.api.persist.query.RyaQueryEngine;
-import mvm.rya.api.query.strategy.ByteRange;
-import mvm.rya.api.query.strategy.TriplePatternStrategy;
-import mvm.rya.api.resolver.RyaContext;
-import mvm.rya.api.resolver.RyaTripleContext;
-import mvm.rya.api.resolver.triple.TripleRowRegex;
-import mvm.rya.api.utils.CloseableIterableIteration;
 
 import org.apache.accumulo.core.client.BatchScanner;
 import org.apache.accumulo.core.client.Connector;
@@ -73,6 +51,28 @@ import com.google.common.base.Function;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.FluentIterable;
 import com.google.common.collect.Iterators;
+
+import info.aduna.iteration.CloseableIteration;
+import mvm.rya.accumulo.AccumuloRdfConfiguration;
+import mvm.rya.api.RdfCloudTripleStoreConfiguration;
+import mvm.rya.api.RdfCloudTripleStoreConstants;
+import mvm.rya.api.RdfCloudTripleStoreConstants.TABLE_LAYOUT;
+import mvm.rya.api.RdfCloudTripleStoreUtils;
+import mvm.rya.api.domain.RyaRange;
+import mvm.rya.api.domain.RyaStatement;
+import mvm.rya.api.domain.RyaType;
+import mvm.rya.api.domain.RyaURI;
+import mvm.rya.api.layout.TableLayoutStrategy;
+import mvm.rya.api.persist.RyaDAOException;
+import mvm.rya.api.persist.query.BatchRyaQuery;
+import mvm.rya.api.persist.query.RyaQuery;
+import mvm.rya.api.persist.query.RyaQueryEngine;
+import mvm.rya.api.query.strategy.ByteRange;
+import mvm.rya.api.query.strategy.TriplePatternStrategy;
+import mvm.rya.api.resolver.RyaContext;
+import mvm.rya.api.resolver.RyaTripleContext;
+import mvm.rya.api.resolver.triple.TripleRowRegex;
+import mvm.rya.api.utils.CloseableIterableIteration;
 
 /**
  * Date: 7/17/12
@@ -153,11 +153,18 @@ public class AccumuloRyaQueryEngine implements RyaQueryEngine<AccumuloRdfConfigu
                 ranges.add(range);
                 rangeMap.ranges.add(new RdfCloudTripleStoreUtils.CustomEntry<Range, BindingSet>(range, bs));
             }
+            
             //no ranges
             if (layout == null) return null;
             String regexSubject = conf.getRegexSubject();
             String regexPredicate = conf.getRegexPredicate();
             String regexObject = conf.getRegexObject();
+            
+            // TODO: need to review the logic below to determine the right thing to return when strategy is null
+            if (strategy == null) {
+                throw new RyaDAOException("\"strategy\" cannot be null");
+            }
+            
             TripleRowRegex tripleRowRegex = strategy.buildRegex(regexSubject, regexPredicate, regexObject, null, null);
 
             String table = layoutToTable(layout, conf);
@@ -326,6 +333,11 @@ public class AccumuloRyaQueryEngine implements RyaQueryEngine<AccumuloRdfConfigu
             }
             //no ranges
             if (layout == null) throw new IllegalArgumentException("No table layout specified");
+
+            // TODO: need to review the logic below to determine the right thing to return when strategy is null
+            if (strategy == null) {
+                throw new RyaDAOException("\"strategy\" cannot be null");
+            }
 
             final TripleRowRegex tripleRowRegex = strategy.buildRegex(regexSubject, regexPredicate, regexObject, null, null);
 

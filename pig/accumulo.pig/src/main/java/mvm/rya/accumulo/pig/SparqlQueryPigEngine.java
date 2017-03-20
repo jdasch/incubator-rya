@@ -1,5 +1,20 @@
 package mvm.rya.accumulo.pig;
 
+import java.io.ByteArrayInputStream;
+import java.io.FileInputStream;
+import java.io.IOException;
+
+import org.apache.accumulo.core.client.Connector;
+import org.apache.accumulo.core.client.ZooKeeperInstance;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+import org.apache.pig.ExecType;
+import org.apache.pig.PigServer;
+import org.openrdf.query.algebra.QueryRoot;
+import org.openrdf.query.parser.ParsedQuery;
+import org.openrdf.query.parser.QueryParser;
+import org.openrdf.query.parser.sparql.SPARQLParser;
+
 /*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
@@ -23,30 +38,16 @@ package mvm.rya.accumulo.pig;
 
 import com.google.common.base.Preconditions;
 import com.google.common.io.ByteStreams;
+
 import mvm.rya.accumulo.AccumuloRdfConfiguration;
 import mvm.rya.accumulo.AccumuloRdfEvalStatsDAO;
 import mvm.rya.accumulo.AccumuloRyaDAO;
-import mvm.rya.accumulo.pig.optimizer.SimilarVarJoinOptimizer;
 import mvm.rya.rdftriplestore.evaluation.QueryJoinOptimizer;
 import mvm.rya.rdftriplestore.evaluation.RdfCloudTripleStoreEvaluationStatistics;
 import mvm.rya.rdftriplestore.inference.InferenceEngine;
 import mvm.rya.rdftriplestore.inference.InverseOfVisitor;
 import mvm.rya.rdftriplestore.inference.SymmetricPropertyVisitor;
 import mvm.rya.rdftriplestore.inference.TransitivePropertyVisitor;
-import org.apache.accumulo.core.client.Connector;
-import org.apache.accumulo.core.client.ZooKeeperInstance;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
-import org.apache.pig.ExecType;
-import org.apache.pig.PigServer;
-import org.openrdf.query.algebra.QueryRoot;
-import org.openrdf.query.parser.ParsedQuery;
-import org.openrdf.query.parser.QueryParser;
-import org.openrdf.query.parser.sparql.SPARQLParser;
-
-import java.io.ByteArrayInputStream;
-import java.io.FileInputStream;
-import java.io.IOException;
 
 /**
  * Created by IntelliJ IDEA.
@@ -150,7 +151,7 @@ public class SparqlQueryPigEngine {
     public void runQuery(String sparql, String hdfsSaveLocation) throws IOException {
         Preconditions.checkNotNull(sparql, "Sparql query cannot be null");
         Preconditions.checkNotNull(hdfsSaveLocation, "Hdfs save location cannot be null");
-        logger.info("Running query[" + sparql + "]\n to Location[" + hdfsSaveLocation + "]");
+        logger.info(String.format("q(%s)\n location(%s)", sparql, hdfsSaveLocation));
         pigServer.deleteFile(hdfsSaveLocation);
         try {
             String pigScript = generatePigScript(sparql);
@@ -188,14 +189,24 @@ public class SparqlQueryPigEngine {
         return sparqlToPigTransformVisitor.getPigScript();
     }
 
+    private static String provideUsage() {
+        final StringBuilder usage = new StringBuilder()
+                .append("Usage: java -cp <jar>:$PIG_LIB <class> sparqlFile hdfsSaveLocation cbinstance cbzk cbuser cbpassword rdfTablePrefix.\n")
+                .append("Sample command:\n")
+                .append("$ java -cp cloudbase.pig-2.0.0-SNAPSHOT-shaded.jar:/usr/local/hadoop-etc/hadoop-0.20.2/hadoop-0.20.2-core.jar:/srv_old/hdfs-tmp/pig/pig-0.9.2/pig-0.9.2.jar:$HADOOP_HOME/conf ")
+                .append("mvm.rya.accumulo.pig.SparqlQueryPigEngine tstSpqrl.query ")
+                .append("temp/engineTest stratus stratus13:2181 test test l_\n");
+
+        return usage.toString();
+    }
 
     public static void main(String[] args) {
-        try {
-            Preconditions.checkArgument(args.length == 7, "Usage: java -cp <jar>:$PIG_LIB <class> sparqlFile hdfsSaveLocation cbinstance cbzk cbuser cbpassword rdfTablePrefix.\n " +
-                    "Sample command: java -cp java -cp cloudbase.pig-2.0.0-SNAPSHOT-shaded.jar:/usr/local/hadoop-etc/hadoop-0.20.2/hadoop-0.20.2-core.jar:/srv_old/hdfs-tmp/pig/pig-0.9.2/pig-0.9.2.jar:$HADOOP_HOME/conf mvm.rya.accumulo.pig.SparqlQueryPigEngine " +
-                    "tstSpqrl.query temp/engineTest stratus stratus13:2181 root password l_");
-            String sparql = new String(ByteStreams.toByteArray(new FileInputStream(args[0])));
+        try (FileInputStream fis = new FileInputStream(args[0])) {
+            Preconditions.checkArgument(args.length == 7, provideUsage());
+            
+            String sparql = new String(ByteStreams.toByteArray(fis));
             String hdfsSaveLocation = args[1];
+            
             SparqlToPigTransformVisitor visitor = new SparqlToPigTransformVisitor();
             visitor.setTablePrefix(args[6]);
             visitor.setInstance(args[2]);

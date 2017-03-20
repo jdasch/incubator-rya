@@ -158,9 +158,10 @@ public class RyaConsoleCommands implements CommandMarker {
     ) {
         //diff formats?
         //diff types of urls
-        try {
-            ntrips_parser.parse(new FileInputStream(file), "");
-        } catch (Exception e) {
+        try (FileInputStream fis = new FileInputStream(file)) {
+            ntrips_parser.parse(fis, "");
+        }
+        catch (Exception e) {
             LOG.log(Level.SEVERE, "", e);
         }
     }

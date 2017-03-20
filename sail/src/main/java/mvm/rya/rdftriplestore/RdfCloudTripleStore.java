@@ -124,7 +124,7 @@ public class RdfCloudTripleStore extends SailBase {
         return conf;
     }
 
-    public void setConf(RdfCloudTripleStoreConfiguration conf) {
+    public synchronized void setConf(RdfCloudTripleStoreConfiguration conf) {
         this.conf = conf;
     }
 
@@ -148,7 +148,7 @@ public class RdfCloudTripleStore extends SailBase {
         return ryaDAO;
     }
 
-    public void setRyaDAO(RyaDAO ryaDAO) {
+    public synchronized void setRyaDAO(RyaDAO ryaDAO) {
         this.ryaDAO = ryaDAO;
     }
 

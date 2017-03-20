@@ -61,74 +61,71 @@ public class EntityLocalityGroupSetter {
         BatchScanner bs = null;
         try {
             bs = conn.createBatchScanner(tablePrefix + "prospects", new Authorizations(auths), 10);
+            
+            bs.setRanges(Collections.singleton(Range.prefix(new Text("predicate" + "\u0000"))));
+            final Iterator<Entry<Key,Value>> iter = bs.iterator();
+            
+            return new Iterator<String>() {
+    
+                private String next = null;
+                private boolean hasNextCalled = false;
+                private boolean isEmpty = false;
+    
+                @Override
+                public boolean hasNext() {
+    
+                    if (!hasNextCalled && !isEmpty) {
+                        while (iter.hasNext()) {
+                            Entry<Key,Value> temp = iter.next();
+                            String row = temp.getKey().getRow().toString();
+                            String[] rowArray = row.split("\u0000");
+                            next = rowArray[1];
+                            
+                            hasNextCalled = true;
+                            return true;
+                        }
+                        isEmpty = true;
+                        return false;
+                    } else if(isEmpty) {
+                        return false;
+                    }else {
+                        return true;
+                    }
+                }
+    
+                @Override
+                public String next() {
+    
+                    if (hasNextCalled) {
+                        hasNextCalled = false;
+                        return next;
+                    } else if(isEmpty) {
+                        throw new NoSuchElementException();
+                    }else {
+                        if (this.hasNext()) {
+                            hasNextCalled = false;
+                            return next;
+                        } else {
+                            throw new NoSuchElementException();
+                        }
+                    }
+                }
+    
+                @Override
+                public void remove() {
+    
+                    throw new UnsupportedOperationException("Cannot delete from iterator!");
+    
+                }
+    
+            }; 
         } catch (TableNotFoundException e) {
             e.printStackTrace();
         }
-        bs.setRanges(Collections.singleton(Range.prefix(new Text("predicate" + "\u0000"))));
-        final Iterator<Entry<Key,Value>> iter = bs.iterator();
         
-        return new Iterator<String>() {
-
-            private String next = null;
-            private boolean hasNextCalled = false;
-            private boolean isEmpty = false;
-
-            @Override
-            public boolean hasNext() {
-
-                if (!hasNextCalled && !isEmpty) {
-                    while (iter.hasNext()) {
-                        Entry<Key,Value> temp = iter.next();
-                        String row = temp.getKey().getRow().toString();
-                        String[] rowArray = row.split("\u0000");
-                        next = rowArray[1];
-                        
-                        hasNextCalled = true;
-                        return true;
-                    }
-                    isEmpty = true;
-                    return false;
-                } else if(isEmpty) {
-                    return false;
-                }else {
-                    return true;
-                }
-            }
-
-            @Override
-            public String next() {
-
-                if (hasNextCalled) {
-                    hasNextCalled = false;
-                    return next;
-                } else if(isEmpty) {
-                    throw new NoSuchElementException();
-                }else {
-                    if (this.hasNext()) {
-                        hasNextCalled = false;
-                        return next;
-                    } else {
-                        throw new NoSuchElementException();
-                    }
-                }
-            }
-
-            @Override
-            public void remove() {
-
-                throw new UnsupportedOperationException("Cannot delete from iterator!");
-
-            }
-
-        }; 
+        // required the caller to check for null
+        return null;
     }
-    
-    
-    
-    
-    
-    
-    
     
     public void setLocalityGroups() {
         
@@ -146,7 +143,6 @@ public class EntityLocalityGroupSetter {
             i++;
         }
         
-
         try {
             conn.tableOperations().setLocalityGroups(tablePrefix + "doc_partitioned_index", localityGroups);
             //conn.tableOperations().compact(tablePrefix + "doc_partitioned_index", null, null, true, true);
@@ -157,15 +153,7 @@ public class EntityLocalityGroupSetter {
         } catch (TableNotFoundException e) {
             e.printStackTrace();
         }
-
-        
         
     }
-    
-    
-    
-    
-    
-    
     
 }

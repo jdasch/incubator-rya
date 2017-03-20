@@ -108,19 +108,20 @@ public class IndexedExecutionPlanGenerator implements ExternalIndexMatcher {
         ExternalTupleSet tempIndex;
         final List<ExternalTupleSet> normalizedIndexSet = Lists.newArrayList();
 
+        // TODO: need to determine to skip an ExternalTupleSet when failed and continue or throw an exception
         for (final ExternalTupleSet e : indexSet) {
             List<TupleExpr> tupList = null;
             try {
                 tupList = QueryVariableNormalizer.getNormalizedIndex(query, e.getTupleExpr());
+                for (final TupleExpr te : tupList) {
+                    tempIndex = (ExternalTupleSet) e.clone();
+                    tempIndex.setProjectionExpr((Projection) te);
+                    normalizedIndexSet.add(tempIndex);
+                }
+
             } catch (final Exception e1) {
                 // TODO Auto-generated catch block
                 e1.printStackTrace();
-            }
-
-            for (final TupleExpr te : tupList) {
-                tempIndex = (ExternalTupleSet) e.clone();
-                tempIndex.setProjectionExpr((Projection) te);
-                normalizedIndexSet.add(tempIndex);
             }
         }
         return normalizedIndexSet;

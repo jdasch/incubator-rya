@@ -109,9 +109,13 @@ public class AccumuloRyaDAO implements RyaDAO<AccumuloRdfConfiguration>, RyaName
         return initialized;
     }
 
+    public synchronized void setInitialized(boolean initialized) {
+        this.initialized = initialized;
+    }
+
     @Override
     public void init() throws RyaDAOException {
-        if (initialized)
+        if (isInitialized())
             return;
         try {
             checkNotNull(conf);
@@ -161,7 +165,7 @@ public class AccumuloRyaDAO implements RyaDAO<AccumuloRdfConfiguration>, RyaName
 
             checkVersion();
 
-            initialized = true;
+            setInitialized(true);
         } catch (Exception e) {
             throw new RyaDAOException(e);
         }
@@ -289,12 +293,12 @@ public class AccumuloRyaDAO implements RyaDAO<AccumuloRdfConfiguration>, RyaName
 
     @Override
     public void destroy() throws RyaDAOException {
-        if (!initialized) {
+        if (!isInitialized()) {
             return;
         }
         //TODO: write lock
         try {
-            initialized = false;
+        	setInitialized(false);
             mt_bw.flush();
 
             mt_bw.close();
@@ -422,7 +426,7 @@ public class AccumuloRyaDAO implements RyaDAO<AccumuloRdfConfiguration>, RyaName
         return connector;
     }
 
-    public void setConnector(Connector connector) {
+    public synchronized void setConnector(Connector connector) {
         this.connector = connector;
     }
 
@@ -430,7 +434,7 @@ public class AccumuloRyaDAO implements RyaDAO<AccumuloRdfConfiguration>, RyaName
         return batchWriterConfig;
     }
 
-    public void setBatchWriterConfig(BatchWriterConfig batchWriterConfig) {
+    public synchronized void setBatchWriterConfig(BatchWriterConfig batchWriterConfig) {
         this.batchWriterConfig = batchWriterConfig;
     }
 
@@ -444,7 +448,7 @@ public class AccumuloRyaDAO implements RyaDAO<AccumuloRdfConfiguration>, RyaName
     }
 
     @Override
-	public void setConf(AccumuloRdfConfiguration conf) {
+	public synchronized void setConf(AccumuloRdfConfiguration conf) {
         this.conf = conf;
     }
 

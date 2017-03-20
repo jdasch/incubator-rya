@@ -35,9 +35,6 @@ import javax.servlet.ServletOutputStream;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import mvm.rya.api.security.SecurityProvider;
-import mvm.rya.api.RdfCloudTripleStoreConfiguration;
-
 import org.openrdf.model.Resource;
 import org.openrdf.model.Statement;
 import org.openrdf.query.BindingSet;
@@ -73,6 +70,9 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
+
+import mvm.rya.api.RdfCloudTripleStoreConfiguration;
+import mvm.rya.api.security.SecurityProvider;
 
 /**
  * Class RdfController
@@ -266,7 +266,7 @@ public class RdfController {
             update.execute();
         } catch (UpdateExecutionException e) {
             os.print(String.format("Update could not be successfully completed for query: %s\n\n", query));
-            os.print(String.format("\n\n%s", e.getLocalizedMessage()));
+            System.out.println(String.format("\n\n%s", e.getLocalizedMessage()));
         }
 
         System.out.format("Update Time = %.3f\n", (System.currentTimeMillis() - startTime) / 1000.);
