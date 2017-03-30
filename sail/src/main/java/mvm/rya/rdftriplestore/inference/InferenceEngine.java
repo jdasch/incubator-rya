@@ -1,5 +1,25 @@
 package mvm.rya.rdftriplestore.inference;
 
+import static com.google.common.base.Preconditions.checkArgument;
+import static com.google.common.base.Preconditions.checkNotNull;
+
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
+import java.util.Timer;
+import java.util.TimerTask;
+
+import org.openrdf.model.Resource;
+import org.openrdf.model.Statement;
+import org.openrdf.model.URI;
+import org.openrdf.model.Value;
+import org.openrdf.model.impl.StatementImpl;
+import org.openrdf.model.vocabulary.OWL;
+import org.openrdf.model.vocabulary.RDF;
+import org.openrdf.model.vocabulary.RDFS;
+import org.openrdf.query.QueryEvaluationException;
+
 /*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
@@ -26,25 +46,12 @@ import com.tinkerpop.blueprints.Edge;
 import com.tinkerpop.blueprints.Graph;
 import com.tinkerpop.blueprints.Vertex;
 import com.tinkerpop.blueprints.impls.tg.TinkerGraphFactory;
+
 import info.aduna.iteration.CloseableIteration;
 import mvm.rya.api.RdfCloudTripleStoreConfiguration;
 import mvm.rya.api.persist.RyaDAO;
 import mvm.rya.api.persist.RyaDAOException;
 import mvm.rya.api.persist.utils.RyaDAOHelper;
-import org.openrdf.model.Resource;
-import org.openrdf.model.Statement;
-import org.openrdf.model.URI;
-import org.openrdf.model.Value;
-import org.openrdf.model.impl.StatementImpl;
-import org.openrdf.model.vocabulary.OWL;
-import org.openrdf.model.vocabulary.RDF;
-import org.openrdf.model.vocabulary.RDFS;
-import org.openrdf.query.QueryEvaluationException;
-
-import java.util.*;
-
-import static com.google.common.base.Preconditions.checkArgument;
-import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
  * Will pull down inference relationships from dao every x seconds. <br>
@@ -61,24 +68,39 @@ public class InferenceEngine {
 
     private RyaDAO ryaDAO;
     private RdfCloudTripleStoreConfiguration conf;
-    private boolean initialized = false;
-    private boolean schedule = true;
+    private boolean initialized;
+    private boolean schedule;
 
-    private long refreshGraphSchedule = 5 * 60 * 1000; //5 min
+    private long refreshGraphSchedule;
     private Timer timer;
+
     public static final String URI_PROP = "uri";
 
-    public void init() throws InferenceEngineException {
+    public InferenceEngine() {
+        this.initialized = false;
+        this.schedule = true;
+        this.ryaDAO = null;
+        this.conf = null;
+        this.subClassOfGraph = null;
+        this.subPropertyOfGraph = null;
+        this.symmetricPropertySet = null;
+        this.inverseOfMap = null;
+        this.transitivePropertySet = null;
+        this.timer = null;
+        this.refreshGraphSchedule = 5 * 60 * 1000; // 5 minutes
+    }
+
+    public void initialize() throws InferenceEngineException {
         try {
             if (isInitialized()) {
                 return;
             }
 
             checkNotNull(conf, "Configuration is null");
-            checkNotNull(ryaDAO, "RdfDao is null");
-            checkArgument(ryaDAO.isInitialized(), "RdfDao is not initialized");
+            checkNotNull(getRyaDAO(), "RdfDao is null");
+            checkArgument(getRyaDAO().isInitialized(), "RdfDao is not initialized");
 
-            if (schedule) {
+            if (isSchedule()) {
             	refreshGraph();
                 timer = new Timer(InferenceEngine.class.getName());
                 timer.scheduleAtFixedRate(new TimerTask() {
@@ -108,12 +130,12 @@ public class InferenceEngine {
         }
     }
 
-    public synchronized void refreshGraph() throws InferenceEngineException {
+    public void refreshGraph() throws InferenceEngineException {
         try {
             //get all subclassof
             Graph graph = TinkerGraphFactory.createTinkerGraph();
-            CloseableIteration<Statement, QueryEvaluationException> iter = RyaDAOHelper.query(ryaDAO, null,
-                    RDFS.SUBCLASSOF, null, conf);
+            CloseableIteration<Statement, QueryEvaluationException> iter = RyaDAOHelper.query(getRyaDAO(), null,
+                    RDFS.SUBCLASSOF, null, getConf());
             try {
                 while (iter.hasNext()) {
                     String edgeName = RDFS.SUBCLASSOF.stringValue();
@@ -126,12 +148,11 @@ public class InferenceEngine {
                 }
             }
 
-            subClassOfGraph = graph; //TODO: Should this be synchronized?
+            setSubClassOfGraph(graph);
 
             graph = TinkerGraphFactory.createTinkerGraph();
 
-            iter = RyaDAOHelper.query(ryaDAO, null,
-                    RDFS.SUBPROPERTYOF, null, conf);
+            iter = RyaDAOHelper.query(getRyaDAO(), null, RDFS.SUBPROPERTYOF, null, getConf());
             try {
                 while (iter.hasNext()) {
                     String edgeName = RDFS.SUBPROPERTYOF.stringValue();
@@ -145,7 +166,7 @@ public class InferenceEngine {
             }
 
             //equiv property really is the same as a subPropertyOf both ways
-            iter = RyaDAOHelper.query(ryaDAO, null, OWL.EQUIVALENTPROPERTY, null, conf);
+            iter = RyaDAOHelper.query(getRyaDAO(), null, OWL.EQUIVALENTPROPERTY, null, getConf());
             try {
                 while (iter.hasNext()) {
                     String edgeName = RDFS.SUBPROPERTYOF.stringValue();
@@ -160,10 +181,10 @@ public class InferenceEngine {
                 }
             }
 
-            subPropertyOfGraph = graph; //TODO: Should this be synchronized?
+            setSubPropertyOfGraph(graph);
 
-            iter = RyaDAOHelper.query(ryaDAO, null, RDF.TYPE, OWL.SYMMETRICPROPERTY, conf);
-            Set<URI> symProp = new HashSet();
+            iter = RyaDAOHelper.query(getRyaDAO(), null, RDF.TYPE, OWL.SYMMETRICPROPERTY, getConf());
+            Set<URI> symProp = new HashSet<>();
             try {
                 while (iter.hasNext()) {
                     Statement st = iter.next();
@@ -176,8 +197,8 @@ public class InferenceEngine {
             }
             symmetricPropertySet = symProp;
 
-            iter = RyaDAOHelper.query(ryaDAO, null, RDF.TYPE, OWL.TRANSITIVEPROPERTY, conf);
-            Set<URI> transProp = new HashSet();
+            iter = RyaDAOHelper.query(getRyaDAO(), null, RDF.TYPE, OWL.TRANSITIVEPROPERTY, getConf());
+            Set<URI> transProp = new HashSet<>();
             try {
                 while (iter.hasNext()) {
                     Statement st = iter.next();
@@ -190,8 +211,8 @@ public class InferenceEngine {
             }
             transitivePropertySet = transProp;
 
-            iter = RyaDAOHelper.query(ryaDAO, null, OWL.INVERSEOF, null, conf);
-            Map<URI, URI> invProp = new HashMap();
+            iter = RyaDAOHelper.query(getRyaDAO(), null, OWL.INVERSEOF, null, getConf());
+            Map<URI, URI> invProp = new HashMap<>();
             try {
                 while (iter.hasNext()) {
                     Statement st = iter.next();
@@ -226,7 +247,7 @@ public class InferenceEngine {
     }
 
     public Set<URI> findParents(Graph graph, URI vertexId) {
-        Set<URI> parents = new HashSet();
+        Set<URI> parents = new HashSet<>();
         if (graph == null) {
             return parents;
         }
@@ -270,7 +291,7 @@ public class InferenceEngine {
      */
     public Set<Statement> findTransitiveProperty(Resource subj, URI prop, Value obj, Resource... contxts) throws InferenceEngineException {
         if (transitivePropertySet.contains(prop)) {
-            Set<Statement> sts = new HashSet();
+            Set<Statement> sts = new HashSet<>();
             boolean goUp = subj == null;
             chainTransitiveProperty(subj, prop, obj, (goUp) ? (obj) : (subj), sts, goUp, contxts);
             return sts;
@@ -293,7 +314,7 @@ public class InferenceEngine {
      */
     public void findSameAsChaining(Resource subj, Set<Resource> currentSameAs, Resource[] contxts) throws InferenceEngineException{
         try {
-			CloseableIteration<Statement, QueryEvaluationException> subjIter = RyaDAOHelper.query(ryaDAO, subj, OWL.SAMEAS, null, conf, contxts);
+            CloseableIteration<Statement, QueryEvaluationException> subjIter = RyaDAOHelper.query(getRyaDAO(), subj, OWL.SAMEAS, null, getConf(), contxts);
 			while (subjIter.hasNext()){
 				Statement st = subjIter.next();
 				if (!currentSameAs.contains(st.getObject())){
@@ -303,7 +324,8 @@ public class InferenceEngine {
 				}
 			}
 			subjIter.close();
-			CloseableIteration<Statement, QueryEvaluationException> objIter = RyaDAOHelper.query(ryaDAO, null, OWL.SAMEAS, subj, conf, contxts);
+            CloseableIteration<Statement, QueryEvaluationException> objIter = RyaDAOHelper.query(getRyaDAO(), null,
+                    OWL.SAMEAS, subj, getConf(), contxts);
 			while (objIter.hasNext()){
 				Statement st = objIter.next();
 				if (!currentSameAs.contains(st.getSubject())){
@@ -321,7 +343,7 @@ public class InferenceEngine {
 
     protected void chainTransitiveProperty(Resource subj, URI prop, Value obj, Value core, Set<Statement> sts, boolean goUp, Resource[] contxts) throws InferenceEngineException {
         try {
-            CloseableIteration<Statement, QueryEvaluationException> iter = RyaDAOHelper.query(ryaDAO, subj, prop, obj, conf, contxts);
+            CloseableIteration<Statement, QueryEvaluationException> iter = RyaDAOHelper.query(getRyaDAO(), subj, prop, obj, getConf(), contxts);
             while (iter.hasNext()) {
                 Statement st = iter.next();
                 sts.add(new StatementImpl((goUp) ? (st.getSubject()) : (Resource) (core), prop, (!goUp) ? (st.getObject()) : (core)));
@@ -338,42 +360,50 @@ public class InferenceEngine {
     }
 
     public boolean isInitialized() {
-        return initialized;
+        return this.initialized;
     }
 
-    public synchronized void setInitialized(boolean initialized) {
+    public void setInitialized(boolean initialized) {
         this.initialized = initialized;
     }
 
     public RyaDAO getRyaDAO() {
-        return ryaDAO;
+        return this.ryaDAO;
     }
 
-    public synchronized void setRyaDAO(RyaDAO ryaDAO) {
+    public void setRyaDAO(RyaDAO ryaDAO) {
         this.ryaDAO = ryaDAO;
     }
 
     public RdfCloudTripleStoreConfiguration getConf() {
-        return conf;
+        return this.conf;
     }
 
-    public synchronized void setConf(RdfCloudTripleStoreConfiguration conf) {
+    public void setConf(RdfCloudTripleStoreConfiguration conf) {
         this.conf = conf;
     }
 
     public Graph getSubClassOfGraph() {
-        return subClassOfGraph;
+        return this.subClassOfGraph;
+    }
+
+    public void setSubClassOfGraph(Graph subClassOfGraph) {
+        this.subClassOfGraph = subClassOfGraph;
     }
 
     public Graph getSubPropertyOfGraph() {
-        return subPropertyOfGraph;
+        return this.subPropertyOfGraph;
+    }
+
+    public void setSubPropertyOfGraph(Graph subPropertyOfGraph) {
+        this.subPropertyOfGraph = subPropertyOfGraph;
     }
 
     public long getRefreshGraphSchedule() {
         return refreshGraphSchedule;
     }
 
-    public synchronized void setRefreshGraphSchedule(long refreshGraphSchedule) {
+    public void setRefreshGraphSchedule(long refreshGraphSchedule) {
         this.refreshGraphSchedule = refreshGraphSchedule;
     }
 
@@ -381,7 +411,7 @@ public class InferenceEngine {
         return symmetricPropertySet;
     }
 
-    public synchronized void setSymmetricPropertySet(Set<URI> symmetricPropertySet) {
+    public void setSymmetricPropertySet(Set<URI> symmetricPropertySet) {
         this.symmetricPropertySet = symmetricPropertySet;
     }
 
@@ -389,7 +419,7 @@ public class InferenceEngine {
         return inverseOfMap;
     }
 
-    public synchronized void setInverseOfMap(Map<URI, URI> inverseOfMap) {
+    public void setInverseOfMap(Map<URI, URI> inverseOfMap) {
         this.inverseOfMap = inverseOfMap;
     }
 
@@ -397,15 +427,15 @@ public class InferenceEngine {
         return transitivePropertySet;
     }
 
-    public synchronized void setTransitivePropertySet(Set<URI> transitivePropertySet) {
+    public void setTransitivePropertySet(Set<URI> transitivePropertySet) {
         this.transitivePropertySet = transitivePropertySet;
     }
 
     public boolean isSchedule() {
-        return schedule;
+        return this.schedule;
     }
 
-    public synchronized void setSchedule(boolean schedule) {
+    public void setSchedule(boolean schedule) {
         this.schedule = schedule;
     }
 }

@@ -76,14 +76,12 @@ import mvm.rya.api.persist.RyaDAO;
 import mvm.rya.api.persist.RyaDAOException;
 import mvm.rya.api.persist.RyaNamespaceManager;
 import mvm.rya.api.resolver.RyaTripleContext;
-import mvm.rya.api.resolver.triple.TripleRow;
-import mvm.rya.api.resolver.triple.TripleRowResolverException;
 
 public class AccumuloRyaDAO implements RyaDAO<AccumuloRdfConfiguration>, RyaNamespaceManager<AccumuloRdfConfiguration> {
     private static final Log logger = LogFactory.getLog(AccumuloRyaDAO.class);
 
-    private boolean initialized = false;
-    private boolean flushEachUpdate = true;
+    private boolean initialized;
+    private boolean flushEachUpdate;
     private Connector connector;
     private BatchWriterConfig batchWriterConfig;
 
@@ -98,25 +96,49 @@ public class AccumuloRyaDAO implements RyaDAO<AccumuloRdfConfiguration>, RyaName
 
     private List<AccumuloIndexer> secondaryIndexers;
 
-    private AccumuloRdfConfiguration conf = new AccumuloRdfConfiguration();
+    private AccumuloRdfConfiguration conf;
     private RyaTableMutationsFactory ryaTableMutationsFactory;
     private TableLayoutStrategy tableLayoutStrategy;
     private AccumuloRyaQueryEngine queryEngine;
     private RyaTripleContext ryaContext;
+
+    public AccumuloRyaDAO() {
+        setInitialized(false);
+
+        this.flushEachUpdate = true;
+        this.connector = null;
+        this.batchWriterConfig = null;
+        this.mt_bw = null;
+
+        this.bw_spo = null;
+        this.bw_po = null;
+        this.bw_osp = null;
+        this.bw_ns = null;
+
+        this.secondaryIndexers = null;
+
+        this.conf = new AccumuloRdfConfiguration();
+        this.ryaTableMutationsFactory = null;
+        this.tableLayoutStrategy = null;
+        this.queryEngine = null;
+        this.ryaContext = null;
+    }
 
     @Override
     public boolean isInitialized() throws RyaDAOException {
         return initialized;
     }
 
-    public synchronized void setInitialized(boolean initialized) {
+    public void setInitialized(boolean initialized) {
         this.initialized = initialized;
     }
 
     @Override
     public void init() throws RyaDAOException {
-        if (isInitialized())
+        if (isInitialized()) {
             return;
+        }
+
         try {
             checkNotNull(conf);
             checkNotNull(connector);
@@ -426,7 +448,7 @@ public class AccumuloRyaDAO implements RyaDAO<AccumuloRdfConfiguration>, RyaName
         return connector;
     }
 
-    public synchronized void setConnector(Connector connector) {
+    public void setConnector(Connector connector) {
         this.connector = connector;
     }
 
@@ -434,7 +456,7 @@ public class AccumuloRyaDAO implements RyaDAO<AccumuloRdfConfiguration>, RyaName
         return batchWriterConfig;
     }
 
-    public synchronized void setBatchWriterConfig(BatchWriterConfig batchWriterConfig) {
+    public void setBatchWriterConfig(BatchWriterConfig batchWriterConfig) {
         this.batchWriterConfig = batchWriterConfig;
     }
 
@@ -448,7 +470,7 @@ public class AccumuloRyaDAO implements RyaDAO<AccumuloRdfConfiguration>, RyaName
     }
 
     @Override
-	public synchronized void setConf(AccumuloRdfConfiguration conf) {
+    public void setConf(AccumuloRdfConfiguration conf) {
         this.conf = conf;
     }
 

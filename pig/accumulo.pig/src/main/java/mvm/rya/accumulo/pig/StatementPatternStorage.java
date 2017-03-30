@@ -226,7 +226,7 @@ public class StatementPatternStorage extends AccumuloStorage {
             inferenceEngine.setConf(rdfConf);
             inferenceEngine.setRyaDAO(ryaDAO);
             inferenceEngine.setSchedule(false);
-            inferenceEngine.init();
+            inferenceEngine.initialize();
             //is it subclassof or subpropertyof
             if (RDF.TYPE.equals(predicate_value)) {
                 //try subclassof

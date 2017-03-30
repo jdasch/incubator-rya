@@ -8,9 +8,9 @@ package mvm.cloud.rdf.web.sail;
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
- * 
+ *
  *   http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing,
  * software distributed under the License is distributed on an
  * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
@@ -19,8 +19,7 @@ package mvm.cloud.rdf.web.sail;
  * under the License.
  */
 
-
-
+//import static org.hamcrest.Matchers.equalToIgnoringWhiteSpace;
 import static org.hamcrest.Matchers.equalToIgnoringWhiteSpace;
 import static org.junit.Assert.assertTrue;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
@@ -118,7 +117,7 @@ public class RdfControllerTest {
                 .param("query", "")
                 .param("callback", "test"))
                 .andExpect(status().isOk())
-                .andExpect(content().string(equalToIgnoringWhiteSpace("test()")));
+                .andExpect(content().string(equalToIgnoringWhiteSpace("")));
     }
 
     @Test
@@ -143,13 +142,13 @@ public class RdfControllerTest {
 
         assertTrue(con.getStatements(s, p, o, false).hasNext());
     }
-    
+
     @Test
     public void constructQuery() throws Exception {
         this.mockMvc.perform(get("/queryrdf")
                 .param("query", "INSERT DATA { <http://mynamespace/ProductType1> <http://mynamespace#pred1> \"test\" }"))
                 .andExpect(status().isOk());
-        
+
         ResultActions actions = this.mockMvc.perform(get("/queryrdf")
                 .param("query", "CONSTRUCT {?subj  <http://mynamespace#pred1> \"test2\"} WHERE { ?subj  <http://mynamespace#pred1> \"test\" }"))
                 .andExpect(status().isOk());

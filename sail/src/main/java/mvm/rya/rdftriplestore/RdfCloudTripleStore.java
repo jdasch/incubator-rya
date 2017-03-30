@@ -1,5 +1,13 @@
 package mvm.rya.rdftriplestore;
 
+import static com.google.common.base.Preconditions.checkNotNull;
+
+import org.openrdf.model.ValueFactory;
+import org.openrdf.model.impl.ValueFactoryImpl;
+import org.openrdf.sail.SailConnection;
+import org.openrdf.sail.SailException;
+import org.openrdf.sail.helpers.SailBase;
+
 /*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
@@ -30,14 +38,6 @@ import mvm.rya.rdftriplestore.inference.InferenceEngine;
 import mvm.rya.rdftriplestore.namespace.NamespaceManager;
 import mvm.rya.rdftriplestore.provenance.ProvenanceCollector;
 
-import org.openrdf.model.ValueFactory;
-import org.openrdf.model.impl.ValueFactoryImpl;
-import org.openrdf.sail.SailConnection;
-import org.openrdf.sail.SailException;
-import org.openrdf.sail.helpers.SailBase;
-
-import static com.google.common.base.Preconditions.checkNotNull;
-
 public class RdfCloudTripleStore extends SailBase {
 
     private RdfCloudTripleStoreConfiguration conf;
@@ -49,7 +49,17 @@ public class RdfCloudTripleStore extends SailBase {
     private NamespaceManager namespaceManager;
     protected ProvenanceCollector provenanceCollector;
 
-    private ValueFactory vf = new ValueFactoryImpl();
+    private ValueFactory vf;
+
+    public RdfCloudTripleStore() {
+        this.conf = null;
+        this.ryaDAO = null;
+        this.rdfEvalStatsDAO = null;
+        this.selectEvalDAO = null;
+        this.namespaceManager = null;
+        this.provenanceCollector = null;
+        this.vf = new ValueFactoryImpl();
+    }
 
     @Override
     protected SailConnection getConnectionInternal() throws SailException {
@@ -124,7 +134,7 @@ public class RdfCloudTripleStore extends SailBase {
         return conf;
     }
 
-    public synchronized void setConf(RdfCloudTripleStoreConfiguration conf) {
+    public void setConf(RdfCloudTripleStoreConfiguration conf) {
         this.conf = conf;
     }
 
@@ -148,7 +158,7 @@ public class RdfCloudTripleStore extends SailBase {
         return ryaDAO;
     }
 
-    public synchronized void setRyaDAO(RyaDAO ryaDAO) {
+    public void setRyaDAO(RyaDAO ryaDAO) {
         this.ryaDAO = ryaDAO;
     }
 

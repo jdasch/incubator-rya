@@ -8,9 +8,9 @@ package mvm.cloud.rdf.web.sail;
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
- * 
+ *
  *   http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing,
  * software distributed under the License is distributed on an
  * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
@@ -81,13 +81,13 @@ import mvm.rya.api.security.SecurityProvider;
  */
 @Controller
 public class RdfController {
-    
+
 	private static final int QUERY_TIME_OUT_SECONDS = 120;
 
     @Autowired
     Repository repository;
-    
-    @Autowired   
+
+    @Autowired
     SecurityProvider provider;
 
     @RequestMapping(value = "/queryrdf", method = {RequestMethod.GET, RequestMethod.POST})
@@ -113,7 +113,7 @@ public class RdfController {
 
 			}
 		}, QUERY_TIME_OUT_SECONDS * 1000);
-		
+
 		try {
 			ServletOutputStream os = response.getOutputStream();
             conn = repository.getConnection();
@@ -124,18 +124,14 @@ public class RdfController {
             Boolean requestedCallback = !StringUtils.isEmpty(callback);
             Boolean requestedFormat = !StringUtils.isEmpty(emit);
 
-            if (requestedCallback) {
-                os.print(callback + "(");
-            }
-
             if (!isBlankQuery) {
             	if (operation instanceof ParsedGraphQuery) {
-            		// Perform Tupple Query
+                    // Perform Tuple Query
                     RDFHandler handler = new RDFXMLWriter(os);
                     response.setContentType("text/xml");
                     performGraphQuery(query, conn, auth, infer, nullout, handler);
                 } else if (operation instanceof ParsedTupleQuery) {
-                    // Perform Tupple Query
+                    // Perform Tuple Query
                     TupleQueryResultHandler handler;
 
                     if (requestedFormat && emit.equalsIgnoreCase("json")) {
@@ -155,10 +151,8 @@ public class RdfController {
                 }
             }
 
-            if (requestedCallback) {
-                os.print(")");
-            }
-        } catch (Exception e) {
+        }
+        catch (Exception e) {
             e.printStackTrace();
             throw new RuntimeException(e);
         } finally {
@@ -170,10 +164,10 @@ public class RdfController {
                 }
             }
         }
-		
+
 		timer.cancel();
     }
-    
+
     private void performQuery(String query, RepositoryConnection conn, String auth, String infer, String nullout, TupleQueryResultHandler handler) throws RepositoryException, MalformedQueryException, QueryEvaluationException, TupleQueryResultHandlerException {
         TupleQuery tupleQuery = conn.prepareTupleQuery(QueryLanguage.SPARQL, query);
         if (auth != null && auth.length() > 0)
@@ -212,7 +206,7 @@ public class RdfController {
         }
 
     }
-    
+
     private void performGraphQuery(String query, RepositoryConnection conn, String auth, String infer, String nullout, RDFHandler handler) throws RepositoryException, MalformedQueryException, QueryEvaluationException, RDFHandlerException {
         GraphQuery graphQuery = conn.prepareGraphQuery(QueryLanguage.SPARQL, query);
         if (auth != null && auth.length() > 0)
@@ -265,23 +259,22 @@ public class RdfController {
         try {
             update.execute();
         } catch (UpdateExecutionException e) {
-            os.print(String.format("Update could not be successfully completed for query: %s\n\n", query));
             System.out.println(String.format("\n\n%s", e.getLocalizedMessage()));
         }
 
         System.out.format("Update Time = %.3f\n", (System.currentTimeMillis() - startTime) / 1000.);
-    }    
-    
+    }
+
     private static final class CountingTupleQueryResultHandlerWrapper implements TupleQueryResultHandler {
     	private TupleQueryResultHandler indir;
     	private int count = 0;
-    	
+
     	public CountingTupleQueryResultHandlerWrapper(TupleQueryResultHandler indir){
     		this.indir = indir;
     	}
-    	
+
     	public int getCount() { return count; }
-    	
+
     	@Override
     	public void endQueryResult() throws TupleQueryResultHandlerException {
     		indir.endQueryResult();
@@ -332,7 +325,7 @@ public class RdfController {
                 for (String auth : auths) {
                     authList.add(VALUE_FACTORY.createURI(AUTH_NAMESPACE, auth));
                 }
-            } 
+            }
             conn.add(new StringReader(body), "", format_r, authList.toArray(new Resource[authList.size()]));
             conn.commit();
         } finally {

@@ -150,7 +150,6 @@ public class ConfigUtils {
             TableExistsException {
         TableOperations tops = getConnector(conf).tableOperations();
         if (!tops.exists(tablename)) {
-            logger.info("Creating table: " + tablename);
             tops.create(tablename);
             return true;
         }

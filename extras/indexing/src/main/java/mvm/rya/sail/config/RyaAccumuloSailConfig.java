@@ -50,11 +50,16 @@ public class RyaAccumuloSailConfig extends SailImplConfigBase {
         ZOOKEEPERS = factory.createURI(NAMESPACE, "zookeepers");
         IS_MOCK = factory.createURI(NAMESPACE, "isMock");
     }
+    
+    private static final String USER_VALUE = "root";
+    private static final String USERP_VALUE = USER_VALUE;
+    private static final String INSTANCE_VALUE = "dev";
+    private static final String ZOOKEEPER_VALUE = "zoo1,zoo2,zoo3";
 
-    private String user = "root";
-    private String password = "root";
-    private String instance = "dev";
-    private String zookeepers = "zoo1,zoo2,zoo3";
+    private String user = USER_VALUE;
+    private String userp = USERP_VALUE;
+    private String instance = INSTANCE_VALUE;
+    private String zookeepers = ZOOKEEPER_VALUE;
     private boolean isMock = false;
     
     public RyaAccumuloSailConfig() {
@@ -70,11 +75,11 @@ public class RyaAccumuloSailConfig extends SailImplConfigBase {
     }
 
     public String getPassword() {
-        return password;
+        return userp;
     }
 
     public void setPassword(String password) {
-        this.password = password;
+        this.userp = password;
     }
 
     public String getInstance() {
@@ -119,7 +124,7 @@ public class RyaAccumuloSailConfig extends SailImplConfigBase {
         ValueFactory v = graph.getValueFactory();
 
         graph.add(implNode, USER, v.createLiteral(user));
-        graph.add(implNode, PASSWORD, v.createLiteral(password));
+        graph.add(implNode, PASSWORD, v.createLiteral(userp));
         graph.add(implNode, INSTANCE, v.createLiteral(instance));
         graph.add(implNode, ZOOKEEPERS, v.createLiteral(zookeepers));
         graph.add(implNode, IS_MOCK, v.createLiteral(isMock));

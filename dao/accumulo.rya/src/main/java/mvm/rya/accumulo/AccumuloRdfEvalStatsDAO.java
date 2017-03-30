@@ -24,22 +24,17 @@ package mvm.rya.accumulo;
 import static com.google.common.base.Preconditions.checkNotNull;
 import static mvm.rya.api.RdfCloudTripleStoreConstants.DELIM;
 import static mvm.rya.api.RdfCloudTripleStoreConstants.EMPTY_TEXT;
-import static mvm.rya.api.RdfCloudTripleStoreConstants.PRED_CF_TXT;
-import static mvm.rya.api.RdfCloudTripleStoreConstants.SUBJECT_CF_TXT;
-import static mvm.rya.api.RdfCloudTripleStoreConstants.SUBJECTPRED_CF_TXT;
 import static mvm.rya.api.RdfCloudTripleStoreConstants.PREDOBJECT_CF_TXT;
+import static mvm.rya.api.RdfCloudTripleStoreConstants.PRED_CF_TXT;
 import static mvm.rya.api.RdfCloudTripleStoreConstants.SUBJECTOBJECT_CF_TXT;
+import static mvm.rya.api.RdfCloudTripleStoreConstants.SUBJECTPRED_CF_TXT;
+import static mvm.rya.api.RdfCloudTripleStoreConstants.SUBJECT_CF_TXT;
 
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-
-import mvm.rya.api.RdfCloudTripleStoreStatement;
-import mvm.rya.api.layout.TableLayoutStrategy;
-import mvm.rya.api.persist.RdfDAOException;
-import mvm.rya.api.persist.RdfEvalStatsDAO;
 
 import org.apache.accumulo.core.client.Connector;
 import org.apache.accumulo.core.client.Scanner;
@@ -51,6 +46,11 @@ import org.apache.hadoop.io.Text;
 import org.openrdf.model.Resource;
 import org.openrdf.model.Value;
 
+import mvm.rya.api.RdfCloudTripleStoreStatement;
+import mvm.rya.api.layout.TableLayoutStrategy;
+import mvm.rya.api.persist.RdfDAOException;
+import mvm.rya.api.persist.RdfEvalStatsDAO;
+
 /**
  * Class CloudbaseRdfEvalStatsDAO
  * Date: Feb 28, 2012
@@ -58,14 +58,22 @@ import org.openrdf.model.Value;
  */
 public class AccumuloRdfEvalStatsDAO implements RdfEvalStatsDAO<AccumuloRdfConfiguration> {
 
-    private boolean initialized = false;
-    private AccumuloRdfConfiguration conf = new AccumuloRdfConfiguration();
+    private boolean initialized;
+    private AccumuloRdfConfiguration conf;
 
-    private Collection<RdfCloudTripleStoreStatement> statements = new ArrayList<RdfCloudTripleStoreStatement>();
+    private Collection<RdfCloudTripleStoreStatement> statements;
     private Connector connector;
 
     //    private String evalTable = TBL_EVAL;
     private TableLayoutStrategy tableLayoutStrategy;
+
+    public AccumuloRdfEvalStatsDAO() {
+        setConnector(null);
+        setInitialized(false);
+        setConf(new AccumuloRdfConfiguration());
+
+        this.statements = new ArrayList<RdfCloudTripleStoreStatement>();
+    }
 
     @Override
     public void init() throws RdfDAOException {
@@ -84,6 +92,7 @@ public class AccumuloRdfEvalStatsDAO implements RdfEvalStatsDAO<AccumuloRdfConfi
 //            if (!tableExists)
 //                tos.create(evalTable);
             setInitialized(true);
+
         } catch (Exception e) {
             throw new RdfDAOException(e);
         }
@@ -95,6 +104,7 @@ public class AccumuloRdfEvalStatsDAO implements RdfEvalStatsDAO<AccumuloRdfConfi
         if (!isInitialized()) {
             throw new IllegalStateException("Not initialized");
         }
+
         setInitialized(false);
     }
 
@@ -103,11 +113,15 @@ public class AccumuloRdfEvalStatsDAO implements RdfEvalStatsDAO<AccumuloRdfConfi
         return initialized;
     }
 
+    public void setInitialized(boolean initialized) {
+        this.initialized = initialized;
+    }
+
     public Connector getConnector() {
         return connector;
     }
 
-    public synchronized void setConnector(Connector connector) {
+    public void setConnector(Connector connector) {
         this.connector = connector;
     }
 
@@ -115,7 +129,7 @@ public class AccumuloRdfEvalStatsDAO implements RdfEvalStatsDAO<AccumuloRdfConfi
         return conf;
     }
 
-    public synchronized void setConf(AccumuloRdfConfiguration conf) {
+    public void setConf(AccumuloRdfConfiguration conf) {
         this.conf = conf;
     }
 
@@ -170,8 +184,4 @@ public class AccumuloRdfEvalStatsDAO implements RdfEvalStatsDAO<AccumuloRdfConfi
 			List<Value> val) throws RdfDAOException {
 		return getCardinality(conf, card, val, null);
 	}
-
-    public synchronized void setInitialized(boolean initialized) {
-        this.initialized = initialized;
-    }
 }
