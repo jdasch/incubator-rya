@@ -16,7 +16,7 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-package org.apache.rya.indexing.pcj.fluo;
+package org.apache.rya.pcj.fluo.test.base;
 
 import static java.util.Objects.requireNonNull;
 import static org.junit.Assert.assertEquals;
