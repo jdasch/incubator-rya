@@ -51,15 +51,10 @@ public class RyaAccumuloSailConfig extends SailImplConfigBase {
         IS_MOCK = factory.createURI(NAMESPACE, "isMock");
     }
     
-    private static final String USER_VALUE = "root";
-    private static final String USERP_VALUE = USER_VALUE;
-    private static final String INSTANCE_VALUE = "dev";
-    private static final String ZOOKEEPER_VALUE = "zoo1,zoo2,zoo3";
-
-    private String user = USER_VALUE;
-    private String userp = USERP_VALUE;
-    private String instance = INSTANCE_VALUE;
-    private String zookeepers = ZOOKEEPER_VALUE;
+    private String user = "";
+    private String userp = "";
+    private String instance = "";
+    private String zookeepers = "";
     private boolean isMock = false;
     
     public RyaAccumuloSailConfig() {

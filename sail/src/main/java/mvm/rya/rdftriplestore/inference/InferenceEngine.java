@@ -90,7 +90,7 @@ public class InferenceEngine {
         this.refreshGraphSchedule = 5 * 60 * 1000; // 5 minutes
     }
 
-    public void initialize() throws InferenceEngineException {
+    public void init() throws InferenceEngineException {
         try {
             if (isInitialized()) {
                 return;

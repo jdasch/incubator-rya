@@ -85,7 +85,7 @@ public class RyaSailFactory {
             InferenceEngine inferenceEngine = new InferenceEngine();
             inferenceEngine.setConf(conf);
             inferenceEngine.setRyaDAO(crdfdao);
-            inferenceEngine.initialize();
+            inferenceEngine.init();
             store.setInferenceEngine(inferenceEngine);            	
         }
 
