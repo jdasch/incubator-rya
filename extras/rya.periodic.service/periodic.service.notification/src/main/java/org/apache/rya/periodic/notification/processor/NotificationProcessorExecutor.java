@@ -34,6 +34,12 @@ import org.apache.rya.periodic.notification.notification.TimestampedNotification
 
 import com.google.common.base.Preconditions;
 
+/**
+ * Executor service that runs {@link TimestampedNotificationProcessor}s with basic
+ * functionality for starting, stopping, and determining whether notification processors are
+ * being executed. 
+ *
+ */
 public class NotificationProcessorExecutor implements LifeCycle {
 
     private static final Logger log = Logger.getLogger(TimestampedNotificationProcessor.class);

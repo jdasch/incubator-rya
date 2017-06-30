@@ -37,6 +37,11 @@ import org.openrdf.query.BindingSet;
 
 import jline.internal.Preconditions;
 
+/**
+ * Object that exports {@link BindingSet}s to the Kafka topic indicated by
+ * the {@link BindingSetRecord}.
+ * 
+ */
 public class KafkaPeriodicBindingSetExporter implements BindingSetExporter, Runnable {
 
     private static final Logger log = Logger.getLogger(BindingSetExporter.class);
@@ -54,6 +59,10 @@ public class KafkaPeriodicBindingSetExporter implements BindingSetExporter, Runn
         this.bindingSets = bindingSets;
     }
 
+    /**
+     * Exports BindingSets to Kafka.  The BindingSet and topic are extracted from
+     * the indicated BindingSetRecord and the BindingSet is then exported to the topic.
+     */
     @Override
     public void exportNotification(BindingSetRecord record) throws ResultExportException {
         String bindingName = IncrementalUpdateConstants.PERIODIC_BIN_ID;

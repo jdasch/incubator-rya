@@ -28,6 +28,7 @@ import java.util.concurrent.locks.ReentrantLock;
 
 import org.apache.rya.periodic.notification.api.Notification;
 import org.apache.rya.periodic.notification.api.NotificationCoordinatorExecutor;
+import org.apache.rya.periodic.notification.api.NotificationProcessor;
 import org.apache.rya.periodic.notification.notification.CommandNotification;
 import org.apache.rya.periodic.notification.notification.PeriodicNotification;
 import org.apache.rya.periodic.notification.notification.TimestampedNotification;
@@ -37,6 +38,12 @@ import org.slf4j.LoggerFactory;
 
 import com.google.common.base.Preconditions;
 
+/**
+ * Implementation of {@link NotificationCoordinatorExecutor} that generates regular notifications
+ * as indicated by {@link PeriodicNotification}s that are registered with this Object. When notifications
+ * are generated they are placed on a work queue to be processed by the {@link NotificationProcessor}.
+ *
+ */
 public class PeriodicNotificationCoordinatorExecutor implements NotificationCoordinatorExecutor {
 
     private static final Logger LOG = LoggerFactory.getLogger(PeriodicNotificationCoordinatorExecutor.class);

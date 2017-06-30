@@ -23,6 +23,16 @@ import org.apache.rya.periodic.notification.api.Notification;
 import com.google.common.base.Objects;
 import com.google.common.base.Preconditions;
 
+/**
+ * This Object contains a Notification Object used by the Periodic Query Service
+ * to inform workers to process results for a given Periodic Query with the
+ * indicated id. Additionally, the CommandNotification contains a
+ * {@link Command} about which action the
+ * {@link NotificationCoordinatorExecutor} should take (adding or deleting).
+ * CommandNotifications are meant to be added to an external work queue (such as
+ * Kafka) to be processed by the NotificationCoordinatorExecutor.
+ *
+ */
 public class CommandNotification implements Notification {
 
     private Notification notification;
@@ -44,10 +54,17 @@ public class CommandNotification implements Notification {
         return notification.getId();
     }
 
+    /**
+     * Returns {@link Notification} contained by this CommmandNotification.
+     * @return - Notification contained by this Object
+     */
     public Notification getNotification() {
         return this.notification;
     }
 
+    /**
+     * @return Command contained by this Object (either add or delete)
+     */
     public Command getCommand() {
         return this.command;
     }

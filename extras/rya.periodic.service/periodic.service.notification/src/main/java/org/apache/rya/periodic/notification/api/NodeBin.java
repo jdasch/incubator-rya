@@ -20,6 +20,13 @@ package org.apache.rya.periodic.notification.api;
 
 import java.util.Objects;
 
+/**
+ * Object used to indicate the id of a given Periodic Query
+ * along with a particular bin of results.  This Object is used
+ * by the {@link BinPruner} to clean up old query results after
+ * they have been processed.
+ *
+ */
 public class NodeBin {
 
     private long bin;
@@ -30,10 +37,15 @@ public class NodeBin {
         this.nodeId = nodeId;
     }
 
+    /**
+     * @return id of Periodic Query
+     */
     public String getNodeId() {
         return nodeId;
     }
-
+/**
+ * @return bin id of results for a given Periodic Query 
+ */
     public long getBin() {
         return bin;
     }

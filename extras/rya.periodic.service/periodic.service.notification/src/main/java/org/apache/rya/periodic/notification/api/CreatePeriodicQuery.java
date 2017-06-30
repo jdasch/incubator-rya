@@ -29,15 +29,39 @@ import org.apache.rya.indexing.pcj.storage.PeriodicQueryStorageException;
 import org.apache.rya.periodic.notification.application.PeriodicNotificationApplication;
 import org.apache.rya.periodic.notification.notification.PeriodicNotification;
 import org.openrdf.query.MalformedQueryException;
+import org.openrdf.query.algebra.evaluation.function.Function;
 
 /**
- * Object that creates a PeriodicQuery. 
- *
+ * Object that creates a Periodic Query.  A Periodic Query is any query
+ * requesting periodic updates about events that occurred within a given
+ * window of time of this instant. This is also known as a rolling window
+ * query.  Period Queries can be expressed using SPARQL by including the
+ * {@link Function} indicated by the URI {@link PeriodicQueryUtil#PeriodicQueryURI}
+ * in the query.  The user must provide this Function with the following arguments:
+ * the temporal variable in the query that will be filtered on, the window of time
+ * that events must occur within, the period at which the user wants to receive updates,
+ * and the time unit.  The following query requests all observations that occurred
+ * within the last minute and requests updates every 15 seconds.  It also performs
+ * a count on those observations.
+ * <li>
+ * <li> prefix function: http://org.apache.rya/function#
+ * <li>               "prefix time: http://www.w3.org/2006/time# 
+ * <li>               "select (count(?obs) as ?total) where {
+ * <li>               "Filter(function:periodic(?time, 1, .25, time:minutes))
+ * <li>               "?obs uri:hasTime ?time.
+ * <li>               "?obs uri:hasId ?id }
+ * <li>
+ * 
+ * This class is responsible for taking a Periodic Query expressed as a SPARQL query
+ * and adding to Fluo and Kafka so that it can be processed by the {@link PeriodicNotificationApplication}.
  */
 public class CreatePeriodicQuery {
 
     private FluoClient fluoClient;
     private PeriodicQueryResultStorage periodicStorage;
+    Function funciton;
+    PeriodicQueryUtil util;
+    
     
     public CreatePeriodicQuery(FluoClient fluoClient, PeriodicQueryResultStorage periodicStorage) {
         this.fluoClient = fluoClient;
@@ -45,7 +69,7 @@ public class CreatePeriodicQuery {
     }
     
     /**
-     * Creates a PeriodicQuery by adding the query to Fluo and using the resulting
+     * Creates a Periodic Query by adding the query to Fluo and using the resulting
      * Fluo id to create a {@link PeriodicQueryResultStorage} table.
      * @param sparql - sparql query registered to Fluo whose results are stored in PeriodicQueryResultStorage table
      * @return PeriodicNotification that can be used to register register this query with the {@link PeriodicNotificationApplication}.
@@ -70,7 +94,7 @@ public class CreatePeriodicQuery {
     }
     
     /**
-     * Creates a PeriodicQuery by adding the query to Fluo and using the resulting
+     * Creates a Periodic Query by adding the query to Fluo and using the resulting
      * Fluo id to create a {@link PeriodicQueryResultStorage} table.  In addition, this
      * method registers the PeriodicQuery with the PeriodicNotificationApplication to poll
      * the PeriodicQueryResultStorage table at regular intervals and export results to Kafka.

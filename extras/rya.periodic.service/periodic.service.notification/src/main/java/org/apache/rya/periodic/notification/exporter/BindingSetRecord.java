@@ -22,6 +22,12 @@ import org.openrdf.query.BindingSet;
 
 import com.google.common.base.Objects;
 
+/**
+ * Object that associates a {@link BindingSet} with a given Kafka topic.
+ * This ensures that the {@link KafkaPeriodicBindingSetExporter} can export
+ * each BindingSet to its appropriate topic.
+ *
+ */
 public class BindingSetRecord {
 
     private BindingSet bs;
@@ -32,10 +38,16 @@ public class BindingSetRecord {
         this.topic = topic;
     }
     
+    /**
+     * @return BindingSet in this BindingSetRecord
+     */
     public BindingSet getBindingSet() {
         return bs;
     }
     
+    /**
+     * @return Kafka topic for this BindingSetRecord
+     */
     public String getTopic() {
         return topic;
     }

@@ -45,7 +45,7 @@ import org.apache.rya.periodic.notification.notification.PeriodicNotification;
  * This class is used by the {@link PeriodicNotificationCoordinatorExecutor}
  * to add all existing {@link PeriodicNotification}s stored in Fluo when it is
  * initialized.  This enables the the {@link PeriodicServiceApplication} to be 
- * fault tolerant.
+ * recover from failure by restoring it original state.
  *
  */
 public class PeriodicNotificationProvider {
@@ -56,6 +56,13 @@ public class PeriodicNotificationProvider {
         this.dao = new FluoQueryMetadataDAO();
     }
     
+    /**
+     * Retrieve all of the information about Periodic Query results already registered
+     * with Fluo.  This is returned in the form of {@link CommandNotification}s that
+     * can be registered with the {@link NotificationCoordinatorExecutor}.
+     * @param sx - snapshot for reading results from Fluo
+     * @return - collection of CommandNotifications that indicate Periodic Query information registered with system
+     */
     public Collection<CommandNotification> getNotifications(Snapshot sx) {
         Set<PeriodicQueryMetadata> periodicMetadata = new HashSet<>();
         RowScanner scanner = sx.scanner().fetch(FluoQueryColumns.PERIODIC_QUERY_NODE_ID)
@@ -72,6 +79,12 @@ public class PeriodicNotificationProvider {
         return getCommandNotifications(sx, periodicMetadata);
     }
     
+    /**
+     * Registers all of Periodic Query information already contained within Fluo to the 
+     * {@link NotificationCoordinatorExecutor}.
+     * @param coordinator - coordinator that periodic info will be registered with
+     * @param sx - snapshot for reading results from Fluo
+     */
     public void processRegisteredNotifications(NotificationCoordinatorExecutor coordinator, Snapshot sx) {
         coordinator.start();
         Collection<CommandNotification> notifications = getNotifications(sx);
@@ -96,7 +109,7 @@ public class PeriodicNotificationProvider {
         return getQueryIdFromPeriodicId(sx, periodicNodeId);
     }
     
-    public String getQueryIdFromPeriodicId(Snapshot sx, String nodeId) {
+    private String getQueryIdFromPeriodicId(Snapshot sx, String nodeId) {
         NodeType nodeType = NodeType.fromNodeId(nodeId).orNull();
         String id = null;
         switch (nodeType) {

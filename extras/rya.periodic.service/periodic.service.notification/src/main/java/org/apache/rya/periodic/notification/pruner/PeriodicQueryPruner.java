@@ -35,6 +35,12 @@ import org.apache.rya.periodic.notification.api.NodeBin;
 
 import jline.internal.Preconditions;
 
+/**
+ * Implementation of {@link BinPruner} that deletes old, already processed
+ * Periodic Query results from Fluo and the PCJ table to which the Fluo results
+ * are exported.
+ *
+ */
 public class PeriodicQueryPruner implements BinPruner, Runnable {
 
     private static final Logger log = Logger.getLogger(PeriodicQueryPruner.class);

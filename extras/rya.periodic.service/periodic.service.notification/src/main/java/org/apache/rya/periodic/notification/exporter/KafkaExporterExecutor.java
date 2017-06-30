@@ -33,6 +33,10 @@ import org.openrdf.query.BindingSet;
 
 import jline.internal.Preconditions;
 
+/**
+ * Executor service that runs {@link KafkaPeriodicBindingSetExporter}s.  
+ *
+ */
 public class KafkaExporterExecutor implements LifeCycle {
 
     private static final Logger log = Logger.getLogger(BindingSetExporter.class);

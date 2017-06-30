@@ -33,6 +33,10 @@ import org.apache.rya.periodic.notification.api.NodeBin;
 
 import com.google.common.base.Preconditions;
 
+/**
+ * Executor service that runs {@link PeriodicQueryPruner}s with added functionality
+ * for starting, stopping, and determining if the query pruners are running.
+ */
 public class PeriodicQueryPrunerExecutor implements LifeCycle {
 
     private static final Logger log = Logger.getLogger(PeriodicQueryPrunerExecutor.class);

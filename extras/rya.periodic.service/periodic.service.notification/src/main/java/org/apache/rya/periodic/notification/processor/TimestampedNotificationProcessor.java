@@ -25,14 +25,25 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import org.apache.log4j.Logger;
 import org.apache.rya.indexing.pcj.storage.PeriodicQueryResultStorage;
 import org.apache.rya.indexing.pcj.storage.PrecomputedJoinStorage.CloseableIterator;
+import org.apache.rya.periodic.notification.api.BinPruner;
 import org.apache.rya.periodic.notification.api.NodeBin;
 import org.apache.rya.periodic.notification.api.NotificationProcessor;
 import org.apache.rya.periodic.notification.exporter.BindingSetRecord;
+import org.apache.rya.periodic.notification.exporter.KafkaPeriodicBindingSetExporter;
 import org.apache.rya.periodic.notification.notification.TimestampedNotification;
 import org.openrdf.query.BindingSet;
 
 import com.google.common.base.Preconditions;
 
+/**
+ * Implementation of {@link NotificationProcessor} that uses the id indicated by
+ * the {@link TimestampedNotification} to obtain results from the
+ * {@link PeriodicQueryResultStorage} layer containing the results of the
+ * Periodic Query. The TimestampedNotificationProcessor then parses the results
+ * and adds them to work queues to be processed by the {@link BinPruner} and the
+ * {@link KafkaPeriodicBindingSetExporter}.
+ *
+ */
 public class TimestampedNotificationProcessor implements NotificationProcessor, Runnable {
 
     private static final Logger log = Logger.getLogger(TimestampedNotificationProcessor.class);
@@ -43,6 +54,7 @@ public class TimestampedNotificationProcessor implements NotificationProcessor, 
     private BlockingQueue<BindingSetRecord> bindingSets; // query results to export
     private AtomicBoolean closed = new AtomicBoolean(false);
     private int threadNumber;
+    
 
     public TimestampedNotificationProcessor(PeriodicQueryResultStorage periodicStorage,
             BlockingQueue<TimestampedNotification> notifications, BlockingQueue<NodeBin> bins, BlockingQueue<BindingSetRecord> bindingSets,

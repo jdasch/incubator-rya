@@ -25,6 +25,13 @@ import org.apache.rya.periodic.notification.api.Notification;
 
 import com.google.common.base.Preconditions;
 
+/**
+ * Notification Object used by the Periodic Query Service to inform workers to
+ * process results for a given Periodic Query with the indicated id.
+ * Additionally, this Object contains a period that indicates a frequency at
+ * which regular updates are generated.
+ *
+ */
 public class PeriodicNotification implements Notification {
 
     private String id;
@@ -51,14 +58,23 @@ public class PeriodicNotification implements Notification {
         return id;
     }
 
+    /**
+     * @return - period at which regular notifications are generated
+     */
     public long getPeriod() {
         return period;
     }
 
+    /**
+     * @return time unit of period and initial delay
+     */
     public TimeUnit getTimeUnit() {
         return periodTimeUnit;
     }
 
+    /**
+     * @return amount of time to delay before beginning to generate notifications
+     */
     public long getInitialDelay() {
         return initialDelay;
     }
@@ -109,21 +125,37 @@ public class PeriodicNotification implements Notification {
         private TimeUnit periodTimeUnit;
         private long initialDelay = 0;
 
+        /**
+         * @param id - periodic query id
+         * @return - builder to chain method calls
+         */
         public Builder id(String id) {
             this.id = id;
             return this;
         }
 
+        /**
+         * @param period of the periodic notification for generating regular notifications
+         * @return - builder to chain method calls
+         */
         public Builder period(long period) {
             this.period = period;
             return this;
         }
 
+        /**
+         * @param timeUnit of period and initial delay
+          * @return - builder to chain method calls
+         */
         public Builder timeUnit(TimeUnit timeUnit) {
             this.periodTimeUnit = timeUnit;
             return this;
         }
 
+        /**
+         * @param initialDelay - amount of time to wait before generating notifications
+         * @return - builder to chain method calls
+         */
         public Builder initialDelay(long initialDelay) {
             this.initialDelay = initialDelay;
             return this;

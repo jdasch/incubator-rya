@@ -28,11 +28,18 @@ import java.util.concurrent.TimeUnit;
 import org.apache.kafka.clients.consumer.KafkaConsumer;
 import org.apache.kafka.common.serialization.Deserializer;
 import org.apache.rya.periodic.notification.api.LifeCycle;
+import org.apache.rya.periodic.notification.api.Notification;
 import org.apache.rya.periodic.notification.api.NotificationCoordinatorExecutor;
 import org.apache.rya.periodic.notification.notification.CommandNotification;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+/**
+ * Consumer group to pull all requests for adding and deleting {@link Notification}s
+ * from Kafka.  This Object executes {@link PeriodicNotificationConsumer}s that retrieve
+ * the {@link CommandNotification}s and register them with the {@link NotificationCoordinatorExecutor}.
+ *
+ */
 public class KafkaNotificationProvider implements LifeCycle {
     private static final Logger LOG = LoggerFactory.getLogger(KafkaNotificationProvider.class);
     private String topic;

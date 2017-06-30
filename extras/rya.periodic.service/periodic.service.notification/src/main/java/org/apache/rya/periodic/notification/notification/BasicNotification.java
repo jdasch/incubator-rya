@@ -22,6 +22,12 @@ import org.apache.rya.periodic.notification.api.Notification;
 
 import com.google.common.base.Objects;
 
+/**
+ * Notification Object used by the Periodic Query Service
+ * to inform workers to process results for a given Periodic
+ * Query with the indicated id.
+ *
+ */
 public class BasicNotification implements Notification {
 
     private String id;

@@ -33,6 +33,9 @@ import org.apache.rya.periodic.notification.api.NodeBin;
 
 import com.google.common.base.Optional;
 
+/**
+ * Deletes {@link BindingSet}s from the indicated Fluo table.
+ */
 public class FluoBinPruner implements BinPruner {
 
     private static final Logger log = Logger.getLogger(FluoBinPruner.class);

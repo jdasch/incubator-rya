@@ -18,8 +18,17 @@
  */
 package org.apache.rya.periodic.notification.api;
 
+/**
+ * Notification Object used by the Periodic Query Service
+ * to inform workers to process results for a given Periodic
+ * Query with the indicated id.
+ *
+ */
 public interface Notification {
 
+    /**
+     * @return id of a Periodic Query
+     */
     public String getId();
 
 }

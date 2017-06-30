@@ -18,6 +18,12 @@
  */
 package org.apache.rya.periodic.notification.application;
 
+/**
+ * Exception thrown when attempting to create a {@link PeriodicNotificationApplication}.
+ * Indicates that a factory was unable to create some component of the application 
+ * because something was configured incorrectly.
+ *
+ */
 public class PeriodicApplicationException extends Exception {
 
     private static final long serialVersionUID = 1L;

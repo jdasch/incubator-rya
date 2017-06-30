@@ -18,12 +18,28 @@
  */
 package org.apache.rya.periodic.notification.api;
 
+/**
+ * Interface providing basic life cycle functionality,
+ * including stopping and starting any class implementing this
+ * interface and checking whether is it running.
+ *
+ */
 public interface LifeCycle {
 
+    /**
+     * Starts a running application.
+     */
     public void start();
 
+    /**
+     * Stops a running application.
+     */
     public void stop();
     
+    /**
+     * Determine if application is currently running.
+     * @return true if application is running and false otherwise.
+     */
     public boolean currentlyRunning();
 
 }

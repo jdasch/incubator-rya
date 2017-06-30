@@ -18,10 +18,24 @@
  */
 package org.apache.rya.periodic.notification.api;
 
+import java.util.concurrent.ScheduledExecutorService;
+
 import org.apache.rya.periodic.notification.notification.CommandNotification;
 
+/**
+ * Object that manages the periodic notifications for the Periodic Query Service.
+ * This Object processes new requests for periodic updates by registering them with
+ * some sort of service that generates periodic updates (such as a {@link ScheduledExecutorService}).
+ *
+ */
 public interface NotificationCoordinatorExecutor extends LifeCycle {
 
+    /**
+     * Registers or deletes a {@link CommandNotification}s with the periodic service to
+     * generate notifications at a regular interval indicated by the CommandNotification.
+     * @param notification - CommandNotification to be registered or deleted from the periodic update
+     * service.
+     */
     public void processNextCommandNotification(CommandNotification notification);
 
 }

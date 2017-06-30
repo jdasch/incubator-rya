@@ -30,7 +30,8 @@ import org.apache.rya.periodic.notification.api.NotificationCoordinatorExecutor;
 import org.apache.rya.periodic.notification.notification.CommandNotification;
 
 /**
- * 
+ * Consumer for the {@link KafkaNotificationProvider}.  This consumer pull messages
+ * from Kafka and registers them with the {@link NotificationCoordinatorExecutor}.
  *
  */
 public class PeriodicNotificationConsumer implements Runnable {

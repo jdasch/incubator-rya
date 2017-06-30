@@ -21,6 +21,13 @@ package org.apache.rya.periodic.notification.notification;
 import java.util.Date;
 import java.util.concurrent.TimeUnit;
 
+/**
+ * {@link PeriodicNotification} Object used by the Periodic Query Service to inform workers to
+ * process results for a given Periodic Query with the indicated id.  Additionally
+ * this Object contains a {@link Date} object to indicate the date time at which this
+ * notification was generated.
+ *
+ */
 public class TimestampedNotification extends PeriodicNotification {
 
     private Date date;
@@ -35,6 +42,9 @@ public class TimestampedNotification extends PeriodicNotification {
         date = new Date();
     }
 
+    /**
+     * @return timestamp at which this notification was generated
+     */
     public Date getTimestamp() {
         return date;
     }
