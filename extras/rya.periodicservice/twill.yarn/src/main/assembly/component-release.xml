@@ -1,0 +1,38 @@
+<component xmlns="http://maven.apache.org/plugins/maven-assembly-plugin/component/1.1.3" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://maven.apache.org/plugins/maven-assembly-plugin/component/1.1.3 http://maven.apache.org/xsd/component-1.1.3.xsd">	
+	<fileSets>
+		<fileSet>
+			<directory>src/main/scripts</directory>
+			<outputDirectory>bin</outputDirectory>
+			<directoryMode>0755</directoryMode>
+      		<fileMode>0755</fileMode>
+			<includes>
+				<include>*.sh</include>
+			</includes>
+			<lineEnding>unix</lineEnding>
+			<filtered>true</filtered>
+		</fileSet>
+		<fileSet>
+			<directory>src/main/conf</directory>
+			<outputDirectory>conf</outputDirectory>
+			<directoryMode>0755</directoryMode>
+      		<fileMode>0644</fileMode>
+			<includes>
+				<include>*.xml</include>
+			</includes>
+		</fileSet>	
+	</fileSets>
+	<dependencySets>
+		<dependencySet>
+			<outputDirectory>lib</outputDirectory>
+			<useTransitiveFiltering>true</useTransitiveFiltering>
+			<scope>runtime</scope>
+			<!--  use the hadoop jars provided by the runtime environment -->
+			<!-- 
+			<excludes>
+				<exclude>org.apache.hadoop:*</exclude>  
+			</excludes>
+			-->
+		</dependencySet>
+	</dependencySets>
+</component>

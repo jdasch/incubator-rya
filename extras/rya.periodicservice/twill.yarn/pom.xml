@@ -1,0 +1,125 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+	<!-- Licensed to the Apache Software Foundation (ASF) under one or more 
+		contributor license agreements. See the NOTICE file distributed with this 
+		work for additional information regarding copyright ownership. The ASF licenses 
+		this file to you under the Apache License, Version 2.0 (the "License"); you 
+		may not use this file except in compliance with the License. You may obtain 
+		a copy of the License at http://www.apache.org/licenses/LICENSE-2.0 Unless 
+		required by applicable law or agreed to in writing, software distributed 
+		under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES 
+		OR CONDITIONS OF ANY KIND, either express or implied. See the License for 
+		the specific language governing permissions and limitations under the License. -->
+	 
+	<parent>
+		<groupId>org.apache.rya</groupId>
+		<artifactId>rya.periodic.service</artifactId>
+		<version>3.2.11-incubating-SNAPSHOT</version>
+	</parent>
+
+	<artifactId>rya.periodic.service.notification.twill.yarn</artifactId>
+	<name>Apache Rya Periodic Service Notification on Twill YARN Application</name>
+    <description>Notifications for Rya Periodic Service on Twill YARN Application</description>
+
+	<dependencies>
+		<dependency>
+			<groupId>com.google.guava</groupId>
+			<artifactId>guava</artifactId>
+			<version>13.0.1</version> <!-- Override Rya's DependencyManagement.  Twill requires 11.0 < guava < 14.0 (Service.listener) (AbstractExecutionThreadService.getServiceName) -->
+		</dependency>
+		<dependency>
+			<groupId>org.apache.twill</groupId>
+			<artifactId>twill-yarn</artifactId>
+		</dependency>
+	        <dependency>
+                        <groupId>org.apache.twill</groupId>
+                        <artifactId>twill-ext</artifactId>
+                </dependency>
+	
+		<dependency>
+			<groupId>org.apache.rya</groupId>
+			<artifactId>rya.periodic.service.notification.twill</artifactId>
+			<version>3.2.11-incubating-SNAPSHOT</version>
+			<classifier>bundle</classifier>
+		</dependency>
+		<dependency>
+			<groupId>org.apache.rya</groupId>
+			<artifactId>rya.periodic.service.notification.twill</artifactId>
+			<version>3.2.11-incubating-SNAPSHOT</version>
+			<classifier>shaded</classifier>
+		</dependency>
+		
+	</dependencies>
+
+	
+	<!-- 
+	<build>
+		<plugins>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-shade-plugin</artifactId>
+				<executions>
+					<execution>
+						<phase>package</phase>
+						<goals>
+							<goal>shade</goal>
+						</goals>
+					</execution>
+				</executions>
+			</plugin>
+		</plugins>
+	</build>
+	-->
+
+
+    <build>
+        <plugins>
+        	<plugin>
+                <artifactId>maven-assembly-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <id>create-binary-distribution</id>
+                        <goals>
+                            <goal>single</goal>
+                        </goals>
+                        <phase>package</phase>
+                        <configuration>
+                        	<tarLongFileMode>gnu</tarLongFileMode>
+                            <descriptors>
+								<descriptor>src/main/assembly/binary-release.xml</descriptor>
+                            </descriptors>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+        
+        	<!-- 
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-shade-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>shade</goal>
+                        </goals>
+                        <configuration>
+                            <createDependencyReducedPom>false</createDependencyReducedPom>
+                            <artifactSet>
+                                <excludes>
+                                    <exclude>org.apache.hadoop:*</exclude>  don't bundle jars that will be provided by runtime environment 
+                                </excludes>
+                            </artifactSet>
+                            <transformers>
+                                <transformer implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer"/>
+                            </transformers>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+            -->
+		</plugins>
+	</build>
+
+</project>
