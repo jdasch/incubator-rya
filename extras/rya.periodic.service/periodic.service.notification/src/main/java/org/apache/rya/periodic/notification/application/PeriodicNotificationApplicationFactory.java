@@ -76,11 +76,7 @@ public class PeriodicNotificationApplicationFactory {
                     .setProcessor(processor).setPruner(pruner).build();
         } catch (AccumuloException | AccumuloSecurityException e) {
             throw new PeriodicApplicationException(e.getMessage());
-        } finally {
-            if(fluo != null) {
-                fluo.close();
-            }
-        }
+        } 
     }
     
     private static void addRegisteredNotices(NotificationCoordinatorExecutor coord, Snapshot sx) {

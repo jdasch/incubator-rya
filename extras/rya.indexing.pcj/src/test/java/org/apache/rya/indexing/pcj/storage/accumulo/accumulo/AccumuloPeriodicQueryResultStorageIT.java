@@ -19,6 +19,7 @@
 package org.apache.rya.indexing.pcj.storage.accumulo.accumulo;
 
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.Optional;
 import java.util.Set;
@@ -224,12 +225,30 @@ public class AccumuloPeriodicQueryResultStorageIT extends AccumuloITBase {
             Assert.assertEquals(expected1, actual1);
         }
         
+        periodicStorage.deletePeriodicQueryResults(queryId, binId);
+        try(CloseableIterator<BindingSet> iter = periodicStorage.listResults(queryId, Optional.of(binId))) {
+            Set<BindingSet> actual1 = new HashSet<>();
+            while(iter.hasNext()) {
+                actual1.add(iter.next());
+            }
+            Assert.assertEquals(Collections.emptySet(), actual1);
+        }
+        
         try(CloseableIterator<BindingSet> iter = periodicStorage.listResults(queryId, Optional.of(binId + period))) {
             Set<BindingSet> actual2 = new HashSet<>();
             while(iter.hasNext()) {
                 actual2.add(iter.next());
             }
             Assert.assertEquals(expected2, actual2);
+        }
+        
+        periodicStorage.deletePeriodicQueryResults(queryId, binId + period);
+        try(CloseableIterator<BindingSet> iter = periodicStorage.listResults(queryId, Optional.of(binId + period))) {
+            Set<BindingSet> actual2 = new HashSet<>();
+            while(iter.hasNext()) {
+                actual2.add(iter.next());
+            }
+            Assert.assertEquals(Collections.emptySet(), actual2);
         }
         
         try(CloseableIterator<BindingSet> iter = periodicStorage.listResults(queryId, Optional.of(binId + 2*period))) {

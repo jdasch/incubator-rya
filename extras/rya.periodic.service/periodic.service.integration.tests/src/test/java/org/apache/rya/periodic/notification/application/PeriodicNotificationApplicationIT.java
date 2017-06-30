@@ -27,7 +27,6 @@ import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -40,6 +39,9 @@ import javax.xml.datatype.DatatypeFactory;
 
 import org.I0Itec.zkclient.ZkClient;
 import org.apache.accumulo.core.client.Connector;
+import org.apache.accumulo.core.client.Scanner;
+import org.apache.accumulo.core.data.Key;
+import org.apache.accumulo.core.security.Authorizations;
 import org.apache.fluo.api.client.FluoClient;
 import org.apache.fluo.api.config.FluoConfiguration;
 import org.apache.fluo.core.client.FluoClientImpl;
@@ -58,7 +60,10 @@ import org.apache.rya.indexing.pcj.fluo.app.IncrementalUpdateConstants;
 import org.apache.rya.indexing.pcj.fluo.app.util.FluoClientFactory;
 import org.apache.rya.indexing.pcj.storage.PeriodicQueryResultStorage;
 import org.apache.rya.indexing.pcj.storage.PrecomputedJoinStorage.CloseableIterator;
+import org.apache.rya.indexing.pcj.storage.accumulo.AccumuloPcjSerializer;
 import org.apache.rya.indexing.pcj.storage.accumulo.AccumuloPeriodicQueryResultStorage;
+import org.apache.rya.indexing.pcj.storage.accumulo.PeriodicQueryTableNameFactory;
+import org.apache.rya.indexing.pcj.storage.accumulo.VariableOrder;
 import org.apache.rya.pcj.fluo.test.base.RyaExportITBase;
 import org.apache.rya.periodic.notification.api.CreatePeriodicQuery;
 import org.apache.rya.periodic.notification.notification.CommandNotification;
@@ -66,9 +71,11 @@ import org.apache.rya.periodic.notification.registration.kafka.KafkaNotification
 import org.apache.rya.periodic.notification.serialization.BindingSetSerDe;
 import org.apache.rya.periodic.notification.serialization.CommandNotificationSerializer;
 import org.junit.After;
+import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.openrdf.model.Statement;
+import org.openrdf.model.Value;
 import org.openrdf.model.ValueFactory;
 import org.openrdf.model.impl.ValueFactoryImpl;
 import org.openrdf.query.BindingSet;
@@ -77,7 +84,6 @@ import com.google.common.collect.HashMultimap;
 import com.google.common.collect.Multimap;
 import com.google.common.collect.Sets;
 
-import org.junit.Assert;
 import kafka.server.KafkaConfig;
 import kafka.server.KafkaServer;
 import kafka.utils.MockTime;
@@ -134,7 +140,7 @@ public class PeriodicNotificationApplicationIT extends RyaExportITBase {
     }
     
     @Test
-    public void periodicApplicationTest() throws Exception {
+    public void periodicApplicationTestWithGroupBy() throws Exception {
 
         String sparql = "prefix function: <http://org.apache.rya/function#> " // n
                 + "prefix time: <http://www.w3.org/2006/time#> " // n
@@ -142,24 +148,54 @@ public class PeriodicNotificationApplicationIT extends RyaExportITBase {
                 + "Filter(function:periodic(?time, 1, .25, time:minutes)) " // n
                 + "?obs <uri:hasTime> ?time. " // n
                 + "?obs <uri:hasId> ?id } group by ?id"; // n
+        
+        //make data
+        int periodMult = 15;
+        final ValueFactory vf = new ValueFactoryImpl();
+        final DatatypeFactory dtf = DatatypeFactory.newInstance();
+        //Sleep until current time aligns nicely with period to make
+        //results more predictable
+        while(System.currentTimeMillis() % (periodMult*1000) > 500);
+        ZonedDateTime time = ZonedDateTime.now();
+        System.out.println("Now: " + time.toInstant().toEpochMilli());
 
+        ZonedDateTime zTime1 = time.minusSeconds(2*periodMult);
+        String time1 = zTime1.format(DateTimeFormatter.ISO_INSTANT);
+
+        ZonedDateTime zTime2 = zTime1.minusSeconds(periodMult);
+        String time2 = zTime2.format(DateTimeFormatter.ISO_INSTANT);
+
+        ZonedDateTime zTime3 = zTime2.minusSeconds(periodMult);
+        String time3 = zTime3.format(DateTimeFormatter.ISO_INSTANT);
+
+        final Collection<Statement> statements = Sets.newHashSet(
+                vf.createStatement(vf.createURI("urn:obs_1"), vf.createURI("uri:hasTime"),
+                        vf.createLiteral(dtf.newXMLGregorianCalendar(time1))),
+                vf.createStatement(vf.createURI("urn:obs_1"), vf.createURI("uri:hasId"), vf.createLiteral("id_1")),
+                vf.createStatement(vf.createURI("urn:obs_2"), vf.createURI("uri:hasTime"),
+                        vf.createLiteral(dtf.newXMLGregorianCalendar(time2))),
+                vf.createStatement(vf.createURI("urn:obs_2"), vf.createURI("uri:hasId"), vf.createLiteral("id_2")),
+                vf.createStatement(vf.createURI("urn:obs_3"), vf.createURI("uri:hasTime"),
+                        vf.createLiteral(dtf.newXMLGregorianCalendar(time3))),
+                vf.createStatement(vf.createURI("urn:obs_3"), vf.createURI("uri:hasId"), vf.createLiteral("id_3")));
+        
         try (FluoClient fluo = FluoClientFactory.getFluoClient(conf.getFluoAppName(), Optional.of(conf.getFluoTableName()), conf)) {
             Connector connector = ConfigUtils.getConnector(conf);
             PeriodicQueryResultStorage storage = new AccumuloPeriodicQueryResultStorage(connector, conf.getTablePrefix());
             CreatePeriodicQuery periodicQuery = new CreatePeriodicQuery(fluo, storage);
             String id = periodicQuery.createQueryAndRegisterWithKafka(sparql, registrar);
-            addData();
+            addData(statements);
             app.start();
 //            
             Multimap<Long, BindingSet> expected = HashMultimap.create();
             try (KafkaConsumer<String, BindingSet> consumer = new KafkaConsumer<>(kafkaProps, new StringDeserializer(), new BindingSetSerDe())) {
                 consumer.subscribe(Arrays.asList(id));
-                long end = System.currentTimeMillis() + 61000;
+                long end = System.currentTimeMillis() + 4*periodMult*1000;
                 long lastBinId = 0L;
                 long binId = 0L;
                 List<Long> ids = new ArrayList<>();
                 while (System.currentTimeMillis() < end) {
-                    ConsumerRecords<String, BindingSet> records = consumer.poll(15000);
+                    ConsumerRecords<String, BindingSet> records = consumer.poll(periodMult*1000);
                     for(ConsumerRecord<String, BindingSet> record: records){
                         BindingSet result = record.value();
                         binId = Long.parseLong(result.getBinding(IncrementalUpdateConstants.PERIODIC_BIN_ID).getValue().stringValue());
@@ -170,15 +206,114 @@ public class PeriodicNotificationApplicationIT extends RyaExportITBase {
                         expected.put(binId, result);
                     }
                 }
-                Assert.assertEquals(4, expected.asMap().size());
+                
+                Assert.assertEquals(3, expected.asMap().size());
                 int i = 0;
                 for(Long ident: ids) {
-                    Assert.assertEquals(4 - i, expected.get(ident).size());
+                    Assert.assertEquals(3 - i, expected.get(ident).size());
                     i++;
                 }
             }
             
-            Thread.sleep(5000);
+            Set<BindingSet> expectedResults = new HashSet<>();
+            try (CloseableIterator<BindingSet> results = storage.listResults(id, Optional.empty())) {
+                results.forEachRemaining(x -> expectedResults.add(x));
+                Assert.assertEquals(0, expectedResults.size());
+            }
+        }
+    }
+    
+    
+    @Test
+    public void periodicApplicationTest() throws Exception {
+
+        String sparql = "prefix function: <http://org.apache.rya/function#> " // n
+                + "prefix time: <http://www.w3.org/2006/time#> " // n
+                + "select (count(?obs) as ?total) where {" // n
+                + "Filter(function:periodic(?time, 1, .25, time:minutes)) " // n
+                + "?obs <uri:hasTime> ?time. " // n
+                + "?obs <uri:hasId> ?id } "; // n
+        
+        //make data
+        int periodMult = 15;
+        final ValueFactory vf = new ValueFactoryImpl();
+        final DatatypeFactory dtf = DatatypeFactory.newInstance();
+        //Sleep until current time aligns nicely with period to make
+        //results more predictable
+        while(System.currentTimeMillis() % (periodMult*1000) > 500);
+        ZonedDateTime time = ZonedDateTime.now();
+        System.out.println("Now: " + time.toInstant().toEpochMilli());
+
+        ZonedDateTime zTime1 = time.minusSeconds(2*periodMult);
+        String time1 = zTime1.format(DateTimeFormatter.ISO_INSTANT);
+
+        ZonedDateTime zTime2 = zTime1.minusSeconds(periodMult);
+        String time2 = zTime2.format(DateTimeFormatter.ISO_INSTANT);
+
+        ZonedDateTime zTime3 = zTime2.minusSeconds(periodMult);
+        String time3 = zTime3.format(DateTimeFormatter.ISO_INSTANT);
+
+        final Collection<Statement> statements = Sets.newHashSet(
+                vf.createStatement(vf.createURI("urn:obs_1"), vf.createURI("uri:hasTime"),
+                        vf.createLiteral(dtf.newXMLGregorianCalendar(time1))),
+                vf.createStatement(vf.createURI("urn:obs_1"), vf.createURI("uri:hasId"), vf.createLiteral("id_1")),
+                vf.createStatement(vf.createURI("urn:obs_2"), vf.createURI("uri:hasTime"),
+                        vf.createLiteral(dtf.newXMLGregorianCalendar(time2))),
+                vf.createStatement(vf.createURI("urn:obs_2"), vf.createURI("uri:hasId"), vf.createLiteral("id_2")),
+                vf.createStatement(vf.createURI("urn:obs_3"), vf.createURI("uri:hasTime"),
+                        vf.createLiteral(dtf.newXMLGregorianCalendar(time3))),
+                vf.createStatement(vf.createURI("urn:obs_3"), vf.createURI("uri:hasId"), vf.createLiteral("id_3")));
+        
+        try (FluoClient fluo = FluoClientFactory.getFluoClient(conf.getFluoAppName(), Optional.of(conf.getFluoTableName()), conf)) {
+            Connector connector = ConfigUtils.getConnector(conf);
+            PeriodicQueryResultStorage storage = new AccumuloPeriodicQueryResultStorage(connector, conf.getTablePrefix());
+            CreatePeriodicQuery periodicQuery = new CreatePeriodicQuery(fluo, storage);
+            String id = periodicQuery.createQueryAndRegisterWithKafka(sparql, registrar);
+            addData(statements);
+            app.start();
+//            
+            Multimap<Long, BindingSet> expected = HashMultimap.create();
+            try (KafkaConsumer<String, BindingSet> consumer = new KafkaConsumer<>(kafkaProps, new StringDeserializer(), new BindingSetSerDe())) {
+                consumer.subscribe(Arrays.asList(id));
+                long end = System.currentTimeMillis() + 4*periodMult*1000;
+                long lastBinId = 0L;
+                long binId = 0L;
+                List<Long> ids = new ArrayList<>();
+                while (System.currentTimeMillis() < end) {
+                    ConsumerRecords<String, BindingSet> records = consumer.poll(periodMult*1000);
+                    records.forEach(x -> System.out.println(x.value()));
+                    for(ConsumerRecord<String, BindingSet> record: records){
+                        BindingSet result = record.value();
+                        binId = Long.parseLong(result.getBinding(IncrementalUpdateConstants.PERIODIC_BIN_ID).getValue().stringValue());
+                        if(lastBinId != binId) {
+                            lastBinId = binId;
+                            ids.add(binId);
+                        }
+                        expected.put(binId, result);
+                    }
+                }
+                
+                Assert.assertEquals(3, expected.asMap().size());
+                int i = 0;
+                for(Long ident: ids) {
+                    Assert.assertEquals(1, expected.get(ident).size());
+                    BindingSet bs = expected.get(ident).iterator().next();
+                    Value val = bs.getValue("total");
+                    int total = Integer.parseInt(val.stringValue());
+                    Assert.assertEquals(3-i, total);
+                    i++;
+                }
+            }
+            
+            String tableName = new PeriodicQueryTableNameFactory().makeTableName(getRyaInstanceName(), id);
+            Authorizations auths = super.getAccumuloConnector().securityOperations().getUserAuthorizations(getUsername());
+            Scanner scanner = super.getAccumuloConnector().createScanner(tableName, auths);
+            for(Map.Entry<Key, org.apache.accumulo.core.data.Value> entry: scanner) {
+                AccumuloPcjSerializer converter = new AccumuloPcjSerializer();
+                System.out.println(entry.getKey());
+                System.out.println(entry.getKey().getRow());
+                System.out.println(converter.convert(entry.getKey().getRow().getBytes(), new VariableOrder(IncrementalUpdateConstants.PERIODIC_BIN_ID)));
+            }
             
             Set<BindingSet> expectedResults = new HashSet<>();
             try (CloseableIterator<BindingSet> results = storage.listResults(id, Optional.empty())) {
@@ -188,6 +323,7 @@ public class PeriodicNotificationApplicationIT extends RyaExportITBase {
         }
 
     }
+    
     
     @After
     public void shutdown() {
@@ -201,39 +337,8 @@ public class PeriodicNotificationApplicationIT extends RyaExportITBase {
         zkClient.close();
         zkServer.shutdown();
     }
-
-    private void addData() throws DatatypeConfigurationException {
-        // create statements to ingest into Fluo
-        final ValueFactory vf = new ValueFactoryImpl();
-        final DatatypeFactory dtf = DatatypeFactory.newInstance();
-        ZonedDateTime time = ZonedDateTime.now();
-
-        ZonedDateTime zTime1 = time.minusSeconds(15);
-        String time1 = zTime1.format(DateTimeFormatter.ISO_INSTANT);
-
-        ZonedDateTime zTime2 = zTime1.minusSeconds(15);
-        String time2 = zTime2.format(DateTimeFormatter.ISO_INSTANT);
-
-        ZonedDateTime zTime3 = zTime2.minusSeconds(15);
-        String time3 = zTime3.format(DateTimeFormatter.ISO_INSTANT);
-
-        ZonedDateTime zTime4 = zTime3.minusSeconds(15);
-        String time4 = zTime4.format(DateTimeFormatter.ISO_INSTANT);
-
-        final Collection<Statement> statements = Sets.newHashSet(
-                vf.createStatement(vf.createURI("urn:obs_1"), vf.createURI("uri:hasTime"),
-                        vf.createLiteral(dtf.newXMLGregorianCalendar(time1))),
-                vf.createStatement(vf.createURI("urn:obs_1"), vf.createURI("uri:hasId"), vf.createLiteral("id_1")),
-                vf.createStatement(vf.createURI("urn:obs_2"), vf.createURI("uri:hasTime"),
-                        vf.createLiteral(dtf.newXMLGregorianCalendar(time2))),
-                vf.createStatement(vf.createURI("urn:obs_2"), vf.createURI("uri:hasId"), vf.createLiteral("id_2")),
-                vf.createStatement(vf.createURI("urn:obs_3"), vf.createURI("uri:hasTime"),
-                        vf.createLiteral(dtf.newXMLGregorianCalendar(time3))),
-                vf.createStatement(vf.createURI("urn:obs_3"), vf.createURI("uri:hasId"), vf.createLiteral("id_3")),
-                vf.createStatement(vf.createURI("urn:obs_4"), vf.createURI("uri:hasTime"),
-                        vf.createLiteral(dtf.newXMLGregorianCalendar(time4))),
-                vf.createStatement(vf.createURI("urn:obs_4"), vf.createURI("uri:hasId"), vf.createLiteral("id_4")));
-
+    
+    private void addData(Collection<Statement> statements) throws DatatypeConfigurationException {
         // add statements to Fluo
         try (FluoClient fluo = new FluoClientImpl(getFluoConfiguration())) {
             InsertTriples inserter = new InsertTriples();

@@ -23,7 +23,7 @@ import java.util.concurrent.TimeUnit;
 import org.apache.rya.periodic.notification.notification.BasicNotification;
 import org.apache.rya.periodic.notification.notification.PeriodicNotification;
 
-public interface PeriodicNotificationClient {
+public interface PeriodicNotificationClient extends AutoCloseable {
 
     public void addNotification(PeriodicNotification notification);
     

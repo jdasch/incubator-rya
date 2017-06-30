@@ -80,8 +80,8 @@ public class TimestampedNotificationProcessor implements NotificationProcessor, 
                 bindingSets.add(new BindingSetRecord(iter.next(), id));
             }
             // add NodeBin to BinPruner queue so that bin can be deleted from
-            // Fluo and Accumulo
-            bins.put(nodeBin);
+            // Fluo and Accumulo\
+            bins.add(nodeBin);
         } catch (Exception e) {
             log.debug("Encountered error: " + e.getMessage() + " while accessing periodic results for bin: " + bin + " for query: " + id);
         }
@@ -100,6 +100,7 @@ public class TimestampedNotificationProcessor implements NotificationProcessor, 
      */
     private long getBinFromTimestamp(long ts, long period) {
         Preconditions.checkArgument(period > 0);
+        System.out.println("Timestamp is : " + ts + " and bin is :" + (ts/period)*period);
         return (ts / period) * period;
     }
 

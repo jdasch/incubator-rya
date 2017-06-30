@@ -75,6 +75,9 @@ public class PeriodicQueryPrunerExecutor implements LifeCycle {
         if (pruners != null && pruners.size() > 0) {
             pruners.forEach(x -> x.shutdown());
         }
+        if(client != null) {
+            client.close();
+        }
         if (executor != null) {
             executor.shutdown();
             running = false;

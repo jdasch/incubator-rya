@@ -82,6 +82,7 @@ public class PeriodicQueryPruner implements BinPruner, Runnable {
             String queryId = sx.get(Bytes.of(id), FluoQueryColumns.PCJ_ID_QUERY_ID).toString();
             Set<String> fluoIds = getNodeIdsFromResultId(sx, queryId);
             accPruner.pruneBindingSetBin(new NodeBin(id, bin));
+            System.out.println("Pruning: " + nodeBin);
             for(String fluoId: fluoIds) {
                 fluoPruner.pruneBindingSetBin(new NodeBin(fluoId, bin));
             }

@@ -21,8 +21,18 @@ package org.apache.rya.periodic.notification.api;
 import org.apache.rya.indexing.pcj.fluo.app.export.IncrementalBindingSetExporter.ResultExportException;
 import org.apache.rya.periodic.notification.exporter.BindingSetRecord;
 
+/**
+ * An Object that is used to export {@link BindingSet}s to an external repository or queuing system.
+ *
+ */
 public interface BindingSetExporter {
 
+    /**
+     * This method exports the BindingSet to the external repository or queuing system
+     * that this BindingSetExporter is configured to export to.
+     * @param bindingSet - {@link BindingSet} to be exported
+     * @throws ResultExportException
+     */
     public void exportNotification(BindingSetRecord bindingSet) throws ResultExportException;
 
 }

@@ -30,6 +30,10 @@ import org.apache.rya.periodic.notification.application.PeriodicNotificationAppl
 import org.apache.rya.periodic.notification.notification.PeriodicNotification;
 import org.openrdf.query.MalformedQueryException;
 
+/**
+ * Object that creates a PeriodicQuery. 
+ *
+ */
 public class CreatePeriodicQuery {
 
     private FluoClient fluoClient;

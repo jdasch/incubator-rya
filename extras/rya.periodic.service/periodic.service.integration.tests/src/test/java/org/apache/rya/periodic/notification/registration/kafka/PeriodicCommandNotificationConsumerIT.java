@@ -34,90 +34,79 @@ import org.apache.rya.periodic.notification.coordinator.PeriodicNotificationCoor
 import org.apache.rya.periodic.notification.notification.CommandNotification;
 import org.apache.rya.periodic.notification.notification.TimestampedNotification;
 import org.apache.rya.periodic.notification.serialization.CommandNotificationSerializer;
+import org.junit.After;
 import org.junit.Assert;
 import org.junit.Test;
 
 public class PeriodicCommandNotificationConsumerIT extends KafkaExportITBase {
 
-    private static final String  topic = "topic";
-    
+    private static final String topic = "topic";
+    private KafkaNotificationRegistrationClient registration;
+    private PeriodicNotificationCoordinatorExecutor coord;
+    private KafkaNotificationProvider provider;
+
     @Test
     public void kafkaNotificationProviderTest() throws InterruptedException {
-        
+
         BasicConfigurator.configure();
-        
+
         BlockingQueue<TimestampedNotification> notifications = new LinkedBlockingQueue<>();
         Properties props = createKafkaConfig();
         KafkaProducer<String, CommandNotification> producer = new KafkaProducer<>(props);
-        KafkaNotificationRegistrationClient registration = new KafkaNotificationRegistrationClient(topic, producer);
-        PeriodicNotificationCoordinatorExecutor coord = new PeriodicNotificationCoordinatorExecutor(1, notifications);
-        KafkaNotificationProvider provider = new KafkaNotificationProvider(topic, new StringDeserializer(), new CommandNotificationSerializer(), props, coord, 1);
+        registration = new KafkaNotificationRegistrationClient(topic, producer);
+        coord = new PeriodicNotificationCoordinatorExecutor(1, notifications);
+        provider = new KafkaNotificationProvider(topic, new StringDeserializer(), new CommandNotificationSerializer(), props, coord, 1);
         provider.start();
-        
+
         registration.addNotification("1", 1, 0, TimeUnit.SECONDS);
-        registration.addNotification("2", 2, 0, TimeUnit.SECONDS);
-        
-        Thread.sleep(6500);
-        registration.deleteNotification("1");
-        registration.deleteNotification("2");
-        
-        //sleep for 4 seconds to ensure no more messages being produced
         Thread.sleep(4000);
+        // check that notifications are being added to the blocking queue
+        Assert.assertEquals(true, notifications.size() > 0);
+
+        registration.deleteNotification("1");
+        Thread.sleep(2000);
+        int size = notifications.size();
+        // sleep for 2 seconds to ensure no more messages being produced
+        Thread.sleep(2000);
+        Assert.assertEquals(size, notifications.size());
         
-        int count1 = 0;
-        int count2 = 0;
-        for(TimestampedNotification notification: notifications) {
-            if(notification.getId().equals("1")) {
-                count1++;
-            }
-            if(notification.getId().equals("2")) {
-                count2++;
-            }
-        }
-        
-        Assert.assertEquals(6, count1);
-        Assert.assertEquals(3, count2);
+        tearDown();
     }
-    
-    
+
     @Test
     public void kafkaNotificationMillisProviderTest() throws InterruptedException {
-        
+
         BasicConfigurator.configure();
-        
+
         BlockingQueue<TimestampedNotification> notifications = new LinkedBlockingQueue<>();
         Properties props = createKafkaConfig();
         KafkaProducer<String, CommandNotification> producer = new KafkaProducer<>(props);
-        KafkaNotificationRegistrationClient registration = new KafkaNotificationRegistrationClient(topic, producer);
-        PeriodicNotificationCoordinatorExecutor coord = new PeriodicNotificationCoordinatorExecutor(1, notifications);
-        KafkaNotificationProvider provider = new KafkaNotificationProvider(topic, new StringDeserializer(), new CommandNotificationSerializer(), props, coord, 1);
+        registration = new KafkaNotificationRegistrationClient(topic, producer);
+        coord = new PeriodicNotificationCoordinatorExecutor(1, notifications);
+        provider = new KafkaNotificationProvider(topic, new StringDeserializer(), new CommandNotificationSerializer(), props, coord, 1);
         provider.start();
-        
+
         registration.addNotification("1", 1000, 0, TimeUnit.MILLISECONDS);
-        registration.addNotification("2", 2000, 0, TimeUnit.MILLISECONDS);
-        
-        Thread.sleep(6500);
-        registration.deleteNotification("1");
-        registration.deleteNotification("2");
-        
-        //sleep for 4 seconds to ensure no more messages being produced
         Thread.sleep(4000);
+        // check that notifications are being added to the blocking queue
+        Assert.assertEquals(true, notifications.size() > 0);
+
+        registration.deleteNotification("1");
+        Thread.sleep(2000);
+        int size = notifications.size();
+        // sleep for 2 seconds to ensure no more messages being produced
+        Thread.sleep(2000);
+        Assert.assertEquals(size, notifications.size());
         
-        int count1 = 0;
-        int count2 = 0;
-        for(TimestampedNotification notification: notifications) {
-            if(notification.getId().equals("1")) {
-                count1++;
-            }
-            if(notification.getId().equals("2")) {
-                count2++;
-            }
-        }
-        
-        Assert.assertEquals(6, count1);
-        Assert.assertEquals(3, count2);
+        tearDown();
     }
-    
+
+    private void tearDown() {
+        registration.close();
+        provider.stop();
+        coord.stop();
+    }
+
     private Properties createKafkaConfig() {
         Properties props = new Properties();
         props.setProperty(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, "127.0.0.1:9092");

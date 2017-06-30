@@ -108,11 +108,12 @@ public class PeriodicQueryUpdater {
         long rightEventBin = getRightBinEndPoint(eventDateTime, periodDuration);
         //get the bin left of the current moment for comparison
         long currentBin = getLeftBinEndPoint(System.currentTimeMillis(), periodDuration);
+        System.out.println("Left Bin: " + currentBin + " and Right Bin: " + rightEventBin);
         
         if(currentBin >= rightEventBin) {
             long numBins = (windowDuration -(currentBin - rightEventBin))/periodDuration;
-            for(int i = 1; i <= numBins; i++) {
-                binIds.add(currentBin + (i-1)*periodDuration);
+            for(int i = 0; i < numBins; i++) {
+                binIds.add(currentBin + i*periodDuration);
             }
         } else {
             //this corresponds to a future event that is inserted into the system

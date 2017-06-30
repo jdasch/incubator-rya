@@ -139,6 +139,7 @@ public class AccumuloPeriodicQueryResultStorage implements PeriodicQueryResultSt
         String tableName = tableNameFactory.makeTableName(ryaInstance, queryId);
         try {
             Text prefix = getRowPrefix(binId);
+            System.out.println("BinId: " + binId + " queryId: " + queryId + " Row Prefix to Delete: " + prefix);
             accumuloConn.tableOperations().deleteRows(tableName, prefix, Range.followingPrefix(prefix));
         } catch (Exception e) {
             throw new PeriodicQueryStorageException(e.getMessage());
