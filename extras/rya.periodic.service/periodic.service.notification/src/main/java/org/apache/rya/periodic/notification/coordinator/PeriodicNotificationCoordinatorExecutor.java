@@ -24,6 +24,7 @@ import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.ReentrantLock;
 
 import org.apache.rya.periodic.notification.api.Notification;
@@ -79,9 +80,20 @@ public class PeriodicNotificationCoordinatorExecutor implements NotificationCoor
 
     @Override
     public void stop() {
-        producerThreadPool.shutdown();
+
+        if (producerThreadPool != null) {
+            producerThreadPool.shutdown();
+        }
+
         running = false;
-        LOG.info("Service Executor Shutdown has been called.  Terminating NotificationRunnable");
+
+        try {
+            if (!producerThreadPool.awaitTermination(5000, TimeUnit.MILLISECONDS)) {
+                producerThreadPool.shutdownNow();
+            }
+        } catch (Exception e) {
+            LOG.info("Service Executor Shutdown has been called.  Terminating NotificationRunnable");
+        }
     }
 
     private void processNotification(CommandNotification notification) {

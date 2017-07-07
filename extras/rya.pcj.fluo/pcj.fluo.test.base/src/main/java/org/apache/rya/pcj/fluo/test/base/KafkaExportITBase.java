@@ -184,7 +184,7 @@ public class KafkaExportITBase extends AccumuloExportITBase {
 
     @After
     public void teardownRya() {
-        final MiniAccumuloCluster cluster = super.getMiniAccumuloCluster();
+        final MiniAccumuloCluster cluster = getMiniAccumuloCluster();
         final String instanceName = cluster.getInstanceName();
         final String zookeepers = cluster.getZooKeepers();
 

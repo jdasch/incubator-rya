@@ -92,7 +92,7 @@ public class TimestampedNotificationProcessor implements NotificationProcessor, 
                 bindingSets.add(new BindingSetRecord(iter.next(), id));
             }
             // add NodeBin to BinPruner queue so that bin can be deleted from
-            // Fluo and Accumulo\
+            // Fluo and Accumulo
             bins.add(nodeBin);
         } catch (Exception e) {
             log.debug("Encountered error: " + e.getMessage() + " while accessing periodic results for bin: " + bin + " for query: " + id);

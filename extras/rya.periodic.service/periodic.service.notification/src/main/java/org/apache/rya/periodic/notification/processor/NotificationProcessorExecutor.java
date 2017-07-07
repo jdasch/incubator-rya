@@ -94,6 +94,7 @@ public class NotificationProcessorExecutor implements LifeCycle {
         try {
             if (!executor.awaitTermination(5000, TimeUnit.MILLISECONDS)) {
                 log.info("Timed out waiting for consumer threads to shut down, exiting uncleanly");
+                executor.shutdownNow();
             }
         } catch (InterruptedException e) {
             log.info("Interrupted during shutdown, exiting uncleanly");
