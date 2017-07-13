@@ -29,14 +29,15 @@ import org.apache.fluo.api.data.Column;
 import org.apache.fluo.api.data.ColumnValue;
 import org.apache.fluo.api.data.RowColumn;
 import org.apache.fluo.api.data.Span;
-import org.apache.log4j.Logger;
 import org.apache.rya.indexing.pcj.fluo.app.batch.BatchInformation.Task;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.google.common.base.Preconditions;
 
 public class SpanBatchBindingSetUpdater extends AbstractBatchBindingSetUpdater {
 
-    private static final Logger log = Logger.getLogger(SpanBatchBindingSetUpdater.class);
+    private static final Logger log = LoggerFactory.getLogger(SpanBatchBindingSetUpdater.class);
 
     @Override
     public void processBatch(TransactionBase tx, Bytes row, BatchInformation batch) throws Exception {

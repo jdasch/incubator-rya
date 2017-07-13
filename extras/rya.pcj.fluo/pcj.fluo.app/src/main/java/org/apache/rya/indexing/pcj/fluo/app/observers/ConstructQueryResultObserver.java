@@ -19,24 +19,6 @@ package org.apache.rya.indexing.pcj.fluo.app.observers;
  */
 import static com.google.common.base.Preconditions.checkNotNull;
 
-/*
- * Licensed to the Apache Software Foundation (ASF) under one
- * or more contributor license agreements.  See the NOTICE file
- * distributed with this work for additional information
- * regarding copyright ownership.  The ASF licenses this file
- * to you under the Apache License, Version 2.0 (the
- * "License"); you may not use this file except in compliance
- * with the License.  You may obtain a copy of the License at
- *
- *   http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing,
- * software distributed under the License is distributed on an
- * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
- * KIND, either express or implied.  See the License for the
- * specific language governing permissions and limitations
- * under the License.
- */
 import java.io.UnsupportedEncodingException;
 import java.util.Collection;
 import java.util.HashMap;
@@ -47,7 +29,6 @@ import org.apache.fluo.api.client.TransactionBase;
 import org.apache.fluo.api.data.Bytes;
 import org.apache.fluo.api.data.Column;
 import org.apache.fluo.api.observer.AbstractObserver;
-import org.apache.log4j.Logger;
 import org.apache.rya.accumulo.utils.VisibilitySimplifier;
 import org.apache.rya.api.RdfCloudTripleStoreConstants.TABLE_LAYOUT;
 import org.apache.rya.api.domain.RyaStatement;
@@ -61,6 +42,8 @@ import org.apache.rya.indexing.pcj.fluo.app.export.IncrementalRyaSubGraphExporte
 import org.apache.rya.indexing.pcj.fluo.app.export.kafka.KafkaRyaSubGraphExporterFactory;
 import org.apache.rya.indexing.pcj.fluo.app.export.kafka.RyaSubGraphKafkaSerDe;
 import org.apache.rya.indexing.pcj.fluo.app.query.FluoQueryColumns;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableSet;
@@ -75,7 +58,7 @@ import com.google.common.collect.ImmutableSet;
 public class ConstructQueryResultObserver extends AbstractObserver {
 
     private static final WholeRowTripleResolver TRIPLE_RESOLVER = new WholeRowTripleResolver();
-    private static final Logger log = Logger.getLogger(ConstructQueryResultObserver.class);
+    private static final Logger log = LoggerFactory.getLogger(ConstructQueryResultObserver.class);
     private static final RyaSubGraphKafkaSerDe serializer = new RyaSubGraphKafkaSerDe();
 
     /**
@@ -124,26 +107,26 @@ public class ConstructQueryResultObserver extends AbstractObserver {
     }
 
     @Override
-    public void process(TransactionBase tx, Bytes row, Column col) throws Exception {
-        Bytes bytes = tx.get(row, col);
-        RyaSubGraph subgraph = serializer.fromBytes(bytes.toArray());
-        Set<RyaStatement> statements = subgraph.getStatements();
+    public void process(final TransactionBase tx, final Bytes row, final Column col) throws Exception {
+        final Bytes bytes = tx.get(row, col);
+        final RyaSubGraph subgraph = serializer.fromBytes(bytes.toArray());
+        final Set<RyaStatement> statements = subgraph.getStatements();
         if (statements.size() > 0) {
             byte[] visibility = statements.iterator().next().getColumnVisibility();
             visibility = simplifyVisibilities(visibility);
-            for(RyaStatement statement: statements) {
+            for(final RyaStatement statement: statements) {
                 statement.setColumnVisibility(visibility);
             }
             subgraph.setStatements(statements);
 
-            for (IncrementalRyaSubGraphExporter exporter : exporters) {
+            for (final IncrementalRyaSubGraphExporter exporter : exporters) {
                 exporter.export(row.toString(), subgraph);
             }
         }
         //add generated triples back into Fluo for chaining queries together
         insertTriples(tx, subgraph.getStatements());
     }
-    
+
     @Override
     public void close() {
         if(exporters != null) {
@@ -157,21 +140,21 @@ public class ConstructQueryResultObserver extends AbstractObserver {
         }
     }
 
-    private byte[] simplifyVisibilities(byte[] visibilityBytes) throws UnsupportedEncodingException {
+    private byte[] simplifyVisibilities(final byte[] visibilityBytes) throws UnsupportedEncodingException {
         // Simplify the result's visibilities and cache new simplified
         // visibilities
-        String visibility = new String(visibilityBytes, "UTF-8");
+        final String visibility = new String(visibilityBytes, "UTF-8");
         if (!simplifiedVisibilities.containsKey(visibility)) {
-            String simplified = VisibilitySimplifier.simplify(visibility);
+            final String simplified = VisibilitySimplifier.simplify(visibility);
             simplifiedVisibilities.put(visibility, simplified);
         }
         return simplifiedVisibilities.get(visibility).getBytes("UTF-8");
     }
-    
-    private void insertTriples(TransactionBase tx, final Collection<RyaStatement> triples) {
+
+    private void insertTriples(final TransactionBase tx, final Collection<RyaStatement> triples) {
 
         for (final RyaStatement triple : triples) {
-            Optional<byte[]> visibility = Optional.fromNullable(triple.getColumnVisibility());
+            final Optional<byte[]> visibility = Optional.fromNullable(triple.getColumnVisibility());
             try {
                 tx.set(Bytes.of(spoFormat(triple)), FluoQueryColumns.TRIPLES, Bytes.of(visibility.or(new byte[0])));
             } catch (final TripleRowResolverException e) {
@@ -179,7 +162,7 @@ public class ConstructQueryResultObserver extends AbstractObserver {
             }
         }
     }
-    
+
 
     /**
      * Converts a triple into a byte[] holding the Rya SPO representation of it.

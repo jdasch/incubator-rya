@@ -27,7 +27,6 @@ import org.apache.fluo.api.client.TransactionBase;
 import org.apache.fluo.api.data.Bytes;
 import org.apache.fluo.api.data.Column;
 import org.apache.fluo.api.observer.AbstractObserver;
-import org.apache.log4j.Logger;
 import org.apache.rya.accumulo.utils.VisibilitySimplifier;
 import org.apache.rya.indexing.pcj.fluo.app.VisibilityBindingSetSerDe;
 import org.apache.rya.indexing.pcj.fluo.app.export.IncrementalBindingSetExporter;
@@ -38,6 +37,8 @@ import org.apache.rya.indexing.pcj.fluo.app.export.kafka.KafkaBindingSetExporter
 import org.apache.rya.indexing.pcj.fluo.app.export.rya.RyaBindingSetExporterFactory;
 import org.apache.rya.indexing.pcj.fluo.app.query.FluoQueryColumns;
 import org.apache.rya.indexing.pcj.storage.accumulo.VisibilityBindingSet;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableSet;
@@ -46,7 +47,7 @@ import com.google.common.collect.ImmutableSet;
  * Performs incremental result exporting to the configured destinations.
  */
 public class QueryResultObserver extends AbstractObserver {
-    private static final Logger log = Logger.getLogger(QueryResultObserver.class);
+    private static final Logger log = LoggerFactory.getLogger(QueryResultObserver.class);
 
     private static final VisibilityBindingSetSerDe BS_SERDE = new VisibilityBindingSetSerDe();
 

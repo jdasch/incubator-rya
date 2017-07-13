@@ -1,0 +1,4 @@
+connect-accumulo --username SPEAR --instanceName spear_instance --zookeepers zoo1,zoo2,zoo3,zoo4,zoo5
+connect-rya --instance jdasch_s1_
+#load-data --file /Users/jdasch/github/incubator-rya/extras/fluo/resources/LUBM/LUBM-Small.nt
+#sparql-query --file /Users/jdasch/github/incubator-rya/extras/fluo/resources/LUBM/queries/Query1.sparql

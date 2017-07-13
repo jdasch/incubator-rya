@@ -19,15 +19,10 @@ package org.apache.rya.indexing.pcj.fluo.app;
  * under the License.
  */
 import java.io.UnsupportedEncodingException;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.UUID;
 
 import org.apache.commons.lang3.builder.EqualsBuilder;
-import org.apache.log4j.Logger;
 import org.apache.rya.api.domain.RyaStatement;
 import org.apache.rya.api.domain.RyaType;
 import org.apache.rya.api.domain.RyaURI;
@@ -41,6 +36,8 @@ import org.openrdf.model.impl.BNodeImpl;
 import org.openrdf.query.BindingSet;
 import org.openrdf.query.algebra.StatementPattern;
 import org.openrdf.query.algebra.Var;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.google.common.base.Objects;
 import com.google.common.base.Preconditions;
@@ -58,18 +55,18 @@ import com.google.common.base.Preconditions;
  */
 public class ConstructProjection {
 
-    private static final Logger log = Logger.getLogger(ConstructProjection.class);
-    private String subjName;
-    private String predName;
-    private String objName;
+    private static final Logger log = LoggerFactory.getLogger(ConstructProjection.class);
+    private final String subjName;
+    private final String predName;
+    private final String objName;
     private Optional<Value> subjValue;
-    private Optional<Value> predValue;
-    private Optional<Value> objValue;
-    private Var subjVar;
-    private Var predVar;
-    private Var objVar;
+    private final Optional<Value> predValue;
+    private final Optional<Value> objValue;
+    private final Var subjVar;
+    private final Var predVar;
+    private final Var objVar;
 
-    public ConstructProjection(Var subjectVar, Var predicateVar, Var objectVar) {
+    public ConstructProjection(final Var subjectVar, final Var predicateVar, final Var objectVar) {
         Preconditions.checkNotNull(subjectVar);
         Preconditions.checkNotNull(predicateVar);
         Preconditions.checkNotNull(objectVar);
@@ -91,7 +88,7 @@ public class ConstructProjection {
         objValue = Optional.ofNullable(objectVar.getValue());
     }
 
-    public ConstructProjection(StatementPattern pattern) {
+    public ConstructProjection(final StatementPattern pattern) {
         this(pattern.getSubjectVar(), pattern.getPredicateVar(), pattern.getObjectVar());
     }
 
@@ -101,7 +98,7 @@ public class ConstructProjection {
      * not constant (as indicated by {@link Var#isConstant()}, then
      * {@link Var#getName()} is the Binding name that gets projected. If the Var
      * is constant, then {@link Var#getValue()} is assigned to the subject
-     * 
+     *
      * @return {@link org.openrdf.query.algebra.Var} containing info about
      *         Binding that gets projected onto the subject
      */
@@ -115,7 +112,7 @@ public class ConstructProjection {
      * is not constant (as indicated by {@link Var#isConstant()}, then
      * {@link Var#getName()} is the Binding name that gets projected. If the Var
      * is constant, then {@link Var#getValue()} is assigned to the predicate
-     * 
+     *
      * @return {@link org.openrdf.query.algebra.Var} containing info about
      *         Binding that gets projected onto the predicate
      */
@@ -129,7 +126,7 @@ public class ConstructProjection {
      * not constant (as indicated by {@link Var#isConstant()}, then
      * {@link Var#getName()} is the Binding name that gets projected. If the Var
      * is constant, then {@link Var#getValue()} is assigned to the object
-     * 
+     *
      * @return {@link org.openrdf.query.algebra.Var} containing info about
      *         Binding that gets projected onto the object
      */
@@ -157,7 +154,7 @@ public class ConstructProjection {
     public Optional<Value> getObjValue() {
         return objValue;
     }
-    
+
 
     /**
      * @return SubjectPattern representation of this ConstructProjection
@@ -175,8 +172,8 @@ public class ConstructProjection {
      * subjectSourceVar, predicateSourceVar, objectSourceVar is resp.
      * non-constant) and from the Var Value itself (if subjectSourceVar,
      * predicateSource, objectSourceVar is resp. constant).
-     * 
-     * 
+     *
+     *
      * @param vBs
      *            - Visibility BindingSet that gets projected onto an RDF
      *            Statement BindingSet with Binding names subject, predicate and
@@ -188,40 +185,40 @@ public class ConstructProjection {
      *         {@link ConstructProjection#getSubjectSourceVar()},
      *         {@link ConstructProjection#getPredicateSourceVar()},
      *         {@link ConstructProjection#getObjectSourceVar()}.
-     * 
+     *
      */
-    public RyaStatement projectBindingSet(VisibilityBindingSet vBs, Map<String, BNode> bNodes) {
-     
+    public RyaStatement projectBindingSet(final VisibilityBindingSet vBs, final Map<String, BNode> bNodes) {
+
         Preconditions.checkNotNull(vBs);
         Preconditions.checkNotNull(bNodes);
-        
-        Value subj = getValue(subjName, subjValue, vBs, bNodes);
-        Value pred = getValue(predName, predValue, vBs, bNodes);
-        Value obj = getValue(objName, objValue, vBs, bNodes);
-        
+
+        final Value subj = getValue(subjName, subjValue, vBs, bNodes);
+        final Value pred = getValue(predName, predValue, vBs, bNodes);
+        final Value obj = getValue(objName, objValue, vBs, bNodes);
+
         Preconditions.checkNotNull(subj);
         Preconditions.checkNotNull(pred);
         Preconditions.checkNotNull(obj);
         Preconditions.checkArgument(subj instanceof Resource);
         Preconditions.checkArgument(pred instanceof URI);
 
-        RyaURI subjType = RdfToRyaConversions.convertResource((Resource) subj);
-        RyaURI predType = RdfToRyaConversions.convertURI((URI) pred);
-        RyaType objectType = RdfToRyaConversions.convertValue(obj);
+        final RyaURI subjType = RdfToRyaConversions.convertResource((Resource) subj);
+        final RyaURI predType = RdfToRyaConversions.convertURI((URI) pred);
+        final RyaType objectType = RdfToRyaConversions.convertValue(obj);
 
-        RyaStatement statement = new RyaStatement(subjType, predType, objectType);
+        final RyaStatement statement = new RyaStatement(subjType, predType, objectType);
         try {
             statement.setColumnVisibility(vBs.getVisibility().getBytes("UTF-8"));
-        } catch (UnsupportedEncodingException e) {
+        } catch (final UnsupportedEncodingException e) {
             log.trace("Unable to decode column visibility.  RyaStatement being created without column visibility.");
         }
         return statement;
     }
-    
-    private Value getValue(String name, Optional<Value> optValue, VisibilityBindingSet bs, Map<String, BNode> bNodes) {
+
+    private Value getValue(final String name, final Optional<Value> optValue, final VisibilityBindingSet bs, final Map<String, BNode> bNodes) {
         Value returnValue = null;
         if (optValue.isPresent()) {
-            Value tempValue = optValue.get();
+            final Value tempValue = optValue.get();
             if(tempValue instanceof BNode) {
                 Preconditions.checkArgument(bNodes.containsKey(name));
                 returnValue = bNodes.get(name);
@@ -241,7 +238,7 @@ public class ConstructProjection {
         }
 
         if (o instanceof ConstructProjection) {
-            ConstructProjection projection = (ConstructProjection) o;
+            final ConstructProjection projection = (ConstructProjection) o;
             return new EqualsBuilder().append(this.subjName, projection.subjName).append(this.predName, projection.predName)
                     .append(this.objName, projection.objName).append(this.subjValue, projection.subjValue)
                     .append(this.predValue, projection.predValue).append(this.objValue, projection.objValue).isEquals();

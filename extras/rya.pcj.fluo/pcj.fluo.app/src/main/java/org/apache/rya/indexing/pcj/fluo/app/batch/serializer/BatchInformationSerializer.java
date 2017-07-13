@@ -19,32 +19,33 @@ package org.apache.rya.indexing.pcj.fluo.app.batch.serializer;
  */
 import java.util.Optional;
 
-import org.apache.log4j.Logger;
 import org.apache.rya.indexing.pcj.fluo.app.batch.BatchInformation;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 
 public class BatchInformationSerializer {
 
-    private static Logger log = Logger.getLogger(BatchInformationSerializer.class);
+    private static Logger log = LoggerFactory.getLogger(BatchInformationSerializer.class);
     private static Gson gson = new GsonBuilder().registerTypeHierarchyAdapter(BatchInformation.class, new BatchInformationTypeAdapter())
             .create();
 
-    public static byte[] toBytes(BatchInformation arg0) {
+    public static byte[] toBytes(final BatchInformation arg0) {
         try {
             return gson.toJson(arg0).getBytes("UTF-8");
-        } catch (Exception e) {
+        } catch (final Exception e) {
             log.info("Unable to serialize BatchInformation: " + arg0);
             throw new RuntimeException(e);
         }
     }
 
-    public static Optional<BatchInformation> fromBytes(byte[] arg0) {
+    public static Optional<BatchInformation> fromBytes(final byte[] arg0) {
         try {
-            String json = new String(arg0, "UTF-8");
+            final String json = new String(arg0, "UTF-8");
             return Optional.of(gson.fromJson(json, BatchInformation.class));
-        } catch (Exception e) {
+        } catch (final Exception e) {
             log.info("Invalid String encoding.  BatchInformation cannot be deserialized.");
             return Optional.empty();
         }

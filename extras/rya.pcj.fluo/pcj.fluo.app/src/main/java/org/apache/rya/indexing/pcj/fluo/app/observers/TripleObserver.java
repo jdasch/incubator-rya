@@ -31,7 +31,6 @@ import org.apache.fluo.api.data.Bytes;
 import org.apache.fluo.api.data.Column;
 import org.apache.fluo.api.data.Span;
 import org.apache.fluo.api.observer.AbstractObserver;
-import org.apache.log4j.Logger;
 import org.apache.rya.api.domain.RyaStatement;
 import org.apache.rya.indexing.pcj.fluo.app.IncUpdateDAO;
 import org.apache.rya.indexing.pcj.fluo.app.VisibilityBindingSetSerDe;
@@ -41,6 +40,8 @@ import org.apache.rya.indexing.pcj.fluo.app.query.StatementPatternMetadata;
 import org.apache.rya.indexing.pcj.storage.accumulo.VariableOrder;
 import org.apache.rya.indexing.pcj.storage.accumulo.VisibilityBindingSet;
 import org.apache.rya.indexing.pcj.storage.accumulo.VisibilityBindingSetStringConverter;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.google.common.base.Charsets;
 import com.google.common.collect.Maps;
@@ -51,7 +52,7 @@ import com.google.common.collect.Maps;
  * the new result is stored as a binding set for the pattern.
  */
 public class TripleObserver extends AbstractObserver {
-    private static final Logger log = Logger.getLogger(TripleObserver.class);
+    private static final Logger log = LoggerFactory.getLogger(TripleObserver.class);
 
     private static final VisibilityBindingSetSerDe BS_SERDE = new VisibilityBindingSetSerDe();
     private static final FluoQueryMetadataDAO QUERY_METADATA_DAO = new FluoQueryMetadataDAO();

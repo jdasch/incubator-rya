@@ -1,0 +1,1 @@
+"SELECT * WHERE { ?person <http://isA> ?noun }"

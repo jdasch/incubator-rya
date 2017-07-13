@@ -19,10 +19,11 @@ package org.apache.rya.indexing.pcj.fluo.app.batch.serializer;
  */
 import java.lang.reflect.Type;
 
-import org.apache.log4j.Logger;
 import org.apache.rya.indexing.pcj.fluo.app.batch.BatchInformation;
 import org.apache.rya.indexing.pcj.fluo.app.batch.JoinBatchInformation;
 import org.apache.rya.indexing.pcj.fluo.app.batch.SpanBatchDeleteInformation;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.google.gson.JsonDeserializationContext;
 import com.google.gson.JsonDeserializer;
@@ -34,17 +35,17 @@ import com.google.gson.JsonSerializer;
 
 public class BatchInformationTypeAdapter implements JsonSerializer<BatchInformation>, JsonDeserializer<BatchInformation> {
 
-    private static final Logger log = Logger.getLogger(BatchInformationTypeAdapter.class);
+    private static final Logger log = LoggerFactory.getLogger(BatchInformationTypeAdapter.class);
     private static final BatchInformationTypeAdapterFactory factory = new BatchInformationTypeAdapterFactory();
 
     @Override
-    public BatchInformation deserialize(JsonElement arg0, Type arg1, JsonDeserializationContext arg2) throws JsonParseException {
+    public BatchInformation deserialize(final JsonElement arg0, final Type arg1, final JsonDeserializationContext arg2) throws JsonParseException {
         try {
-            JsonObject json = arg0.getAsJsonObject();
-            String type = json.get("class").getAsString();
-            JsonDeserializer<? extends BatchInformation> deserializer = factory.getDeserializerFromName(type);
+            final JsonObject json = arg0.getAsJsonObject();
+            final String type = json.get("class").getAsString();
+            final JsonDeserializer<? extends BatchInformation> deserializer = factory.getDeserializerFromName(type);
             return deserializer.deserialize(arg0, arg1, arg2);
-        } catch (Exception e) {
+        } catch (final Exception e) {
             log.trace("Unable to deserialize JsonElement: " + arg0);
             log.trace("Returning an empty Batch");
             throw new JsonParseException(e);
@@ -52,9 +53,9 @@ public class BatchInformationTypeAdapter implements JsonSerializer<BatchInformat
     }
 
     @Override
-    public JsonElement serialize(BatchInformation batch, Type arg1, JsonSerializationContext arg2) {
-        JsonSerializer<? extends BatchInformation> serializer = factory.getSerializerFromName(batch.getClass().getName());
-        
+    public JsonElement serialize(final BatchInformation batch, final Type arg1, final JsonSerializationContext arg2) {
+        final JsonSerializer<? extends BatchInformation> serializer = factory.getSerializerFromName(batch.getClass().getName());
+
         if(batch instanceof SpanBatchDeleteInformation) {
             return ((SpanBatchInformationTypeAdapter) serializer).serialize((SpanBatchDeleteInformation) batch, arg1, arg2);
         } else {

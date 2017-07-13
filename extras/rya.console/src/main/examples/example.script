@@ -1,0 +1,4 @@
+connect-accumulo --username user --instanceName accumulo_instance --zookeepers zoo1,zoo2,zoo3,zoo4,zoo5
+connect-rya --instance rya_
+load-data --file LUBM-Small.nt
+sparql-query --file Query1.sparql

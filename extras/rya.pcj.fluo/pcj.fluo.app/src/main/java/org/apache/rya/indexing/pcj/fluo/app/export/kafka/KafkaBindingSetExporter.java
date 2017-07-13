@@ -27,17 +27,18 @@ import org.apache.fluo.api.client.TransactionBase;
 import org.apache.kafka.clients.producer.KafkaProducer;
 import org.apache.kafka.clients.producer.ProducerRecord;
 import org.apache.kafka.clients.producer.RecordMetadata;
-import org.apache.log4j.Logger;
 import org.apache.rya.indexing.pcj.fluo.app.export.IncrementalBindingSetExporter;
 import org.apache.rya.indexing.pcj.fluo.app.query.FluoQueryColumns;
 import org.apache.rya.indexing.pcj.storage.accumulo.VisibilityBindingSet;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Incrementally exports SPARQL query results to Kafka topics.
  */
 public class KafkaBindingSetExporter implements IncrementalBindingSetExporter {
-    
-    private static final Logger log = Logger.getLogger(KafkaBindingSetExporter.class);
+
+    private static final Logger log = LoggerFactory.getLogger(KafkaBindingSetExporter.class);
     private final KafkaProducer<String, VisibilityBindingSet> producer;
 
 
@@ -48,7 +49,7 @@ public class KafkaBindingSetExporter implements IncrementalBindingSetExporter {
      *            for sending result set alerts to a broker. (not null)
      *            Can be created and configured by {@link KafkaBindingSetExporterFactory}
      */
-    public KafkaBindingSetExporter(KafkaProducer<String, VisibilityBindingSet> producer) {
+    public KafkaBindingSetExporter(final KafkaProducer<String, VisibilityBindingSet> producer) {
         super();
         checkNotNull(producer, "Producer is required.");
         this.producer = producer;

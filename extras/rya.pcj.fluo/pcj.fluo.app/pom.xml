@@ -30,6 +30,11 @@
         <kryo.version>3.0.3</kryo.version>
     </properties>
     <dependencies>
+        <dependency>
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-api</artifactId>
+    	</dependency>
+    
         <!-- Rya Runtime Dependencies. -->
         <dependency>
             <groupId>org.apache.rya</groupId>
@@ -39,14 +44,21 @@
             		<artifactId>slf4j-log4j12</artifactId>
             		<groupId>org.slf4j</groupId>
             	</exclusion>
+            	<exclusion>
+            		<groupId>org.apache.accumulo</groupId>
+            		<artifactId>accumulo-minicluster</artifactId>
+            	</exclusion>
             </exclusions>
         </dependency>
+      	
+      	
     
         <!-- 3rd Party Runtime Dependencies. -->
         <dependency>
             <groupId>org.apache.fluo</groupId>
             <artifactId>fluo-api</artifactId>
         </dependency>
+        <!-- 
         <dependency>
             <groupId>org.apache.fluo</groupId>
             <artifactId>fluo-core</artifactId>
@@ -65,6 +77,7 @@
             <groupId>org.apache.fluo</groupId>
             <artifactId>fluo-recipes-accumulo</artifactId>
         </dependency>
+        -->
         <dependency>
 			<groupId>org.openrdf.sesame</groupId>
 			<artifactId>sesame-queryrender</artifactId>
@@ -73,12 +86,11 @@
         <dependency>
           <groupId>org.apache.kafka</groupId>
           <artifactId>kafka-clients</artifactId>
-          <version>0.10.1.0</version>
         </dependency>
+        <!-- 
         <dependency>
             <groupId>org.apache.kafka</groupId>
             <artifactId>kafka_2.11</artifactId>
-            <version>0.10.1.0</version>
             <exclusions>
                 <exclusion>
                     <artifactId>slf4j-log4j12</artifactId>
@@ -86,6 +98,10 @@
                 </exclusion>
             </exclusions>
         </dependency>
+        -->
+        
+        
+        
         <dependency>
             <groupId>com.esotericsoftware</groupId>
             <artifactId>kryo</artifactId>
@@ -93,6 +109,7 @@
         </dependency>
         
         <!-- Testing dependencies. -->
+        <!-- 
         <dependency>
           <groupId>org.apache.kafka</groupId>
           <artifactId>kafka-clients</artifactId>
@@ -111,6 +128,7 @@
                 </exclusion>
             </exclusions>
         </dependency>
+        -->
         
         <!-- Testing dependencies. -->
         <dependency>
@@ -120,26 +138,51 @@
         </dependency>
     </dependencies>
 
-
 	<build>
 		<plugins>
-			<!-- Use the pre-build 'jar-with-dependencies' assembly to package the 
-				dependent class files into the final jar. This creates a jar file that can 
-				be deployed to Fluo without having to include any dependent jars. -->
+		<!-- 
 			<plugin>
-				<artifactId>maven-assembly-plugin</artifactId>
-				<configuration>
-					<descriptorRefs>
-						<descriptorRef>jar-with-dependencies</descriptorRef>
-					</descriptorRefs>
-				</configuration>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-shade-plugin</artifactId>
 				<executions>
 					<execution>
-						<id>make-assembly</id>
+						<id>fluo-app</id>
+						<phase>package</phase>
+						<goals>
+							<goal>shade</goal>
+						</goals>
+						<configuration>
+							<relocations>
+								<relocation>
+									<pattern>com.google.common</pattern>
+									<shadedPattern>org.apache.rya.shaded.com.google.common</shadedPattern>
+								</relocation>
+							</relocations>
+							<artifactSet>
+								<excludes>
+									<exclude>org.apache.hadoop</exclude>
+									<exclude>org.apache.accumulo</exclude>
+								</excludes>
+							</artifactSet>
+						</configuration>
+					</execution>
+				</executions>
+			</plugin>
+		-->
+			<plugin>
+				<artifactId>maven-assembly-plugin</artifactId>
+				<executions>
+					<execution>
+						<id>fluo-app</id>
 						<phase>package</phase>
 						<goals>
 							<goal>single</goal>
 						</goals>
+						<configuration>
+                            <descriptors>
+								<descriptor>src/main/assembly/fluo-app.xml</descriptor>
+                            </descriptors>
+                        </configuration>
 					</execution>
 				</executions>
 			</plugin>

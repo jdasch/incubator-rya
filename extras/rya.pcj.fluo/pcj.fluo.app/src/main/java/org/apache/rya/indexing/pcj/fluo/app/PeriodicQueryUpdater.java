@@ -24,7 +24,6 @@ import java.util.Set;
 import org.apache.fluo.api.client.TransactionBase;
 import org.apache.fluo.api.data.Bytes;
 import org.apache.fluo.api.data.Column;
-import org.apache.log4j.Logger;
 import org.apache.rya.indexing.pcj.fluo.app.query.FluoQueryColumns;
 import org.apache.rya.indexing.pcj.fluo.app.query.PeriodicQueryMetadata;
 import org.apache.rya.indexing.pcj.fluo.app.util.RowKeyUtil;
@@ -35,62 +34,63 @@ import org.openrdf.model.Value;
 import org.openrdf.model.ValueFactory;
 import org.openrdf.model.impl.ValueFactoryImpl;
 import org.openrdf.query.algebra.evaluation.QueryBindingSet;
-
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 /**
  * This class adds the appropriate BinId Binding to each BindingSet that it processes.  The BinIds
  * are used to determine which period a BindingSet (with a temporal Binding) falls into so that
- * a user can receive periodic updates for a registered query. 
+ * a user can receive periodic updates for a registered query.
  *
  */
 public class PeriodicQueryUpdater {
 
-    private static final Logger log = Logger.getLogger(PeriodicQueryUpdater.class);
+    private static final Logger log = LoggerFactory.getLogger(PeriodicQueryUpdater.class);
     private static final ValueFactory vf = new ValueFactoryImpl();
     private static final VisibilityBindingSetSerDe BS_SERDE = new VisibilityBindingSetSerDe();
 
 
-    public void updatePeriodicBinResults(TransactionBase tx, VisibilityBindingSet bs, PeriodicQueryMetadata metadata) throws Exception {
-        Set<Long> binIds = getBinEndTimes(metadata, bs);
-        for(Long id: binIds) {
+    public void updatePeriodicBinResults(final TransactionBase tx, final VisibilityBindingSet bs, final PeriodicQueryMetadata metadata) throws Exception {
+        final Set<Long> binIds = getBinEndTimes(metadata, bs);
+        for(final Long id: binIds) {
             //create binding set value bytes
-            QueryBindingSet binnedBs = new QueryBindingSet(bs);
+            final QueryBindingSet binnedBs = new QueryBindingSet(bs);
             binnedBs.addBinding(IncrementalUpdateConstants.PERIODIC_BIN_ID, vf.createLiteral(id));
-            VisibilityBindingSet visibilityBindingSet = new VisibilityBindingSet(binnedBs, bs.getVisibility());
-            Bytes periodicBsBytes = BS_SERDE.serialize(visibilityBindingSet);
-            
-            //create row 
+            final VisibilityBindingSet visibilityBindingSet = new VisibilityBindingSet(binnedBs, bs.getVisibility());
+            final Bytes periodicBsBytes = BS_SERDE.serialize(visibilityBindingSet);
+
+            //create row
             final Bytes resultRow = RowKeyUtil.makeRowKey(metadata.getNodeId(), metadata.getVariableOrder(), binnedBs);
-            Column col = FluoQueryColumns.PERIODIC_QUERY_BINDING_SET;
+            final Column col = FluoQueryColumns.PERIODIC_QUERY_BINDING_SET;
             tx.set(resultRow, col, periodicBsBytes);
         }
     }
 
     /**
      * This method returns the end times of all period windows containing the time contained in
-     * the BindingSet.  
-     * 
+     * the BindingSet.
+     *
      * @param metadata
      * @return Set of period bin end times
      */
-    private Set<Long> getBinEndTimes(PeriodicQueryMetadata metadata, VisibilityBindingSet bs) {
-        Set<Long> binIds = new HashSet<>();
+    private Set<Long> getBinEndTimes(final PeriodicQueryMetadata metadata, final VisibilityBindingSet bs) {
+        final Set<Long> binIds = new HashSet<>();
         try {
-            String timeVar = metadata.getTemporalVariable();
-            Value value = bs.getBinding(timeVar).getValue();
-            Literal temporalLiteral = (Literal) value;
-            long eventDateTime = temporalLiteral.calendarValue().toGregorianCalendar().getTimeInMillis();
+            final String timeVar = metadata.getTemporalVariable();
+            final Value value = bs.getBinding(timeVar).getValue();
+            final Literal temporalLiteral = (Literal) value;
+            final long eventDateTime = temporalLiteral.calendarValue().toGregorianCalendar().getTimeInMillis();
             return getEndTimes(eventDateTime, metadata.getWindowSize(), metadata.getPeriod());
-        } catch (Exception e) {
+        } catch (final Exception e) {
             log.trace("Unable to extract the entity time from BindingSet: " + bs);
         }
         return binIds;
     }
 
-    private long getRightBinEndPoint(long eventDateTime, long periodDuration) {
+    private long getRightBinEndPoint(final long eventDateTime, final long periodDuration) {
         return (eventDateTime / periodDuration + 1) * periodDuration;
     }
-    
-    private long getLeftBinEndPoint(long eventTime, long periodDuration) {
+
+    private long getLeftBinEndPoint(final long eventTime, final long periodDuration) {
         return (eventTime / periodDuration) * periodDuration;
     }
 
@@ -103,20 +103,20 @@ public class PeriodicQueryUpdater {
      * @param periodDuration
      * @return Set of period bin end times
      */
-    private Set<Long> getEndTimes(long eventDateTime, long windowDuration, long periodDuration) {
-        Set<Long> binIds = new HashSet<>();
-        long rightEventBin = getRightBinEndPoint(eventDateTime, periodDuration);
+    private Set<Long> getEndTimes(final long eventDateTime, final long windowDuration, final long periodDuration) {
+        final Set<Long> binIds = new HashSet<>();
+        final long rightEventBin = getRightBinEndPoint(eventDateTime, periodDuration);
         //get the bin left of the current moment for comparison
-        long currentBin = getLeftBinEndPoint(System.currentTimeMillis(), periodDuration);
-        
+        final long currentBin = getLeftBinEndPoint(System.currentTimeMillis(), periodDuration);
+
         if(currentBin >= rightEventBin) {
-            long numBins = (windowDuration -(currentBin - rightEventBin))/periodDuration;
+            final long numBins = (windowDuration -(currentBin - rightEventBin))/periodDuration;
             for(int i = 0; i < numBins; i++) {
                 binIds.add(currentBin + i*periodDuration);
             }
         } else {
             //this corresponds to a future event that is inserted into the system
-            long numBins = windowDuration/periodDuration;
+            final long numBins = windowDuration/periodDuration;
             for(int i = 0; i < numBins; i++) {
                 binIds.add(rightEventBin + i*periodDuration);
             }
@@ -124,6 +124,6 @@ public class PeriodicQueryUpdater {
 
         return binIds;
     }
-    
+
 
 }

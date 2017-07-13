@@ -24,7 +24,6 @@ import org.apache.fluo.api.client.TransactionBase;
 import org.apache.fluo.api.data.Bytes;
 import org.apache.fluo.api.data.Column;
 import org.apache.fluo.api.observer.AbstractObserver;
-import org.apache.log4j.Logger;
 import org.apache.rya.indexing.pcj.fluo.app.AggregationResultUpdater;
 import org.apache.rya.indexing.pcj.fluo.app.ConstructQueryResultUpdater;
 import org.apache.rya.indexing.pcj.fluo.app.FilterResultUpdater;
@@ -40,6 +39,8 @@ import org.apache.rya.indexing.pcj.fluo.app.query.JoinMetadata;
 import org.apache.rya.indexing.pcj.fluo.app.query.PeriodicQueryMetadata;
 import org.apache.rya.indexing.pcj.fluo.app.query.QueryMetadata;
 import org.apache.rya.indexing.pcj.storage.accumulo.VisibilityBindingSet;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import edu.umd.cs.findbugs.annotations.DefaultAnnotation;
 import edu.umd.cs.findbugs.annotations.NonNull;
@@ -51,7 +52,7 @@ import edu.umd.cs.findbugs.annotations.NonNull;
  */
 @DefaultAnnotation(NonNull.class)
 public abstract class BindingSetUpdater extends AbstractObserver {
-    private static final Logger log = Logger.getLogger(BindingSetUpdater.class);
+    private static final Logger log = LoggerFactory.getLogger(BindingSetUpdater.class);
     // DAO
     private final FluoQueryMetadataDAO queryDao = new FluoQueryMetadataDAO();
 
@@ -107,7 +108,7 @@ public abstract class BindingSetUpdater extends AbstractObserver {
                 }
                 break;
 
-            case CONSTRUCT: 
+            case CONSTRUCT:
                 final ConstructQueryMetadata constructQuery = queryDao.readConstructQueryMetadata(tx, parentNodeId);
                 try{
                     constructUpdater.updateConstructQueryResults(tx, observedBindingSet, constructQuery);
@@ -115,7 +116,7 @@ public abstract class BindingSetUpdater extends AbstractObserver {
                     throw new RuntimeException("Could not process a Query node.", e);
                 }
                 break;
-                
+
             case FILTER:
                 final FilterMetadata parentFilter = queryDao.readFilterMetadata(tx, parentNodeId);
                 try {
@@ -133,12 +134,12 @@ public abstract class BindingSetUpdater extends AbstractObserver {
                     throw new RuntimeException("Could not process a Join node.", e);
                 }
                 break;
-                
+
             case PERIODIC_QUERY:
                 final PeriodicQueryMetadata parentPeriodicQuery = queryDao.readPeriodicQueryMetadata(tx, parentNodeId);
                 try{
                     periodicQueryUpdater.updatePeriodicBinResults(tx, observedBindingSet, parentPeriodicQuery);
-                } catch(Exception e) {
+                } catch(final Exception e) {
                     throw new RuntimeException("Could not process PeriodicBin node.", e);
                 }
                 break;

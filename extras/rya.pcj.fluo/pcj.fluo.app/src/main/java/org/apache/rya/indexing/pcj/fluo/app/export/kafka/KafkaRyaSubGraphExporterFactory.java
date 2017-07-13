@@ -19,12 +19,13 @@ package org.apache.rya.indexing.pcj.fluo.app.export.kafka;
  */
 import org.apache.fluo.api.observer.Observer.Context;
 import org.apache.kafka.clients.producer.KafkaProducer;
-import org.apache.log4j.Logger;
 import org.apache.rya.api.domain.RyaSubGraph;
 import org.apache.rya.indexing.pcj.fluo.app.export.IncrementalBindingSetExporterFactory.ConfigurationException;
 import org.apache.rya.indexing.pcj.fluo.app.export.IncrementalBindingSetExporterFactory.IncrementalExporterFactoryException;
 import org.apache.rya.indexing.pcj.fluo.app.export.IncrementalRyaSubGraphExporter;
 import org.apache.rya.indexing.pcj.fluo.app.export.IncrementalRyaSubGraphExporterFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.google.common.base.Optional;
 
@@ -35,8 +36,8 @@ import com.google.common.base.Optional;
  */
 public class KafkaRyaSubGraphExporterFactory implements IncrementalRyaSubGraphExporterFactory {
 
-    private static final Logger log = Logger.getLogger(KafkaRyaSubGraphExporterFactory.class);
-    
+    private static final Logger log = LoggerFactory.getLogger(KafkaRyaSubGraphExporterFactory.class);
+
     /**
      * Builds a {@link KafkaRyaSubGraphExporter}.
      * @param context - {@link Context} object used to pass configuration parameters
@@ -45,12 +46,12 @@ public class KafkaRyaSubGraphExporterFactory implements IncrementalRyaSubGraphEx
      * @throws ConfigurationException
      */
     @Override
-    public Optional<IncrementalRyaSubGraphExporter> build(Context context) throws IncrementalExporterFactoryException, ConfigurationException {
+    public Optional<IncrementalRyaSubGraphExporter> build(final Context context) throws IncrementalExporterFactoryException, ConfigurationException {
         final KafkaExportParameters exportParams = new KafkaExportParameters(context.getObserverConfiguration().toMap());
         log.debug("KafkaRyaSubGraphExporterFactory.build(): params.isExportToKafka()=" + exportParams.isExportToKafka());
         if (exportParams.isExportToKafka()) {
             // Setup Kafka connection
-            KafkaProducer<String, RyaSubGraph> producer = new KafkaProducer<String, RyaSubGraph>(exportParams.listAllConfig());
+            final KafkaProducer<String, RyaSubGraph> producer = new KafkaProducer<String, RyaSubGraph>(exportParams.listAllConfig());
             // Create the exporter
             final IncrementalRyaSubGraphExporter exporter = new KafkaRyaSubGraphExporter(producer);
             return Optional.of(exporter);

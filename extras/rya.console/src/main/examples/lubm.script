@@ -1,0 +1,20 @@
+connect-accumulo --username SPEAR --instanceName spear_instance --zookeepers zoo1,zoo2,zoo3,zoo4,zoo5
+install-with-parameters --instanceName jdasch_lubm3_ --enableEntityCentricIndex
+connect-rya --instance jdasch_lubm3_
+load-data --file examples/lubm/ontology.owl
+load-data --file examples/lubm/LUBM-Small.nt
+sparql-query --file examples/lubm/queries/Query1.sparql
+#sparql-query --file examples/lubm/queries/Query2.sparql
+#sparql-query --file examples/lubm/queries/Query3.sparql
+#sparql-query --file examples/lubm/queries/Query4.sparql
+#sparql-query --file examples/lubm/queries/Query5.sparql
+#sparql-query --file examples/lubm/queries/Query6.sparql
+#sparql-query --file examples/lubm/queries/Query7.sparql
+#sparql-query --file examples/lubm/queries/Query8.sparql
+#sparql-query --file examples/lubm/queries/Query9.sparql
+#sparql-query --file examples/lubm/queries/Query10.sparql
+#sparql-query --file examples/lubm/queries/Query11.sparql
+#sparql-query --file examples/lubm/queries/Query12.sparql
+#sparql-query --file examples/lubm/queries/Query13.sparql
+#sparql-query --file examples/lubm/queries/Query14.sparql
+# uninstall

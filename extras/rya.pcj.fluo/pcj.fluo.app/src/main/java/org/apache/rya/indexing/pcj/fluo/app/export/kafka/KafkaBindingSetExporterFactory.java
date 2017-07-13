@@ -21,7 +21,8 @@ package org.apache.rya.indexing.pcj.fluo.app.export.kafka;
 import org.apache.fluo.api.observer.Observer.Context;
 import org.apache.kafka.clients.producer.KafkaProducer;
 import org.apache.kafka.clients.producer.ProducerConfig;
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.apache.rya.indexing.pcj.fluo.app.export.IncrementalBindingSetExporter;
 import org.apache.rya.indexing.pcj.fluo.app.export.IncrementalBindingSetExporterFactory;
 import org.apache.rya.indexing.pcj.storage.accumulo.VisibilityBindingSet;
@@ -45,7 +46,7 @@ import com.google.common.base.Optional;
  * @see ProducerConfig
  */
 public class KafkaBindingSetExporterFactory implements IncrementalBindingSetExporterFactory {
-    private static final Logger log = Logger.getLogger(KafkaBindingSetExporterFactory.class);
+    private static final Logger log = LoggerFactory.getLogger(KafkaBindingSetExporterFactory.class);
     @Override
     public Optional<IncrementalBindingSetExporter> build(Context context) throws IncrementalExporterFactoryException, ConfigurationException {
         final KafkaExportParameters exportParams = new KafkaExportParameters(context.getObserverConfiguration().toMap());

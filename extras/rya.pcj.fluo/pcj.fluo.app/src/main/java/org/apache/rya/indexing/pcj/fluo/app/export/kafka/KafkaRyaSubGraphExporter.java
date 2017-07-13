@@ -25,34 +25,33 @@ import java.util.concurrent.TimeUnit;
 import org.apache.kafka.clients.producer.KafkaProducer;
 import org.apache.kafka.clients.producer.ProducerRecord;
 import org.apache.kafka.clients.producer.RecordMetadata;
-import org.apache.log4j.Logger;
 import org.apache.rya.api.domain.RyaSubGraph;
 import org.apache.rya.indexing.pcj.fluo.app.export.IncrementalBindingSetExporter.ResultExportException;
 import org.apache.rya.indexing.pcj.fluo.app.export.IncrementalRyaSubGraphExporter;
-
-import com.google.common.base.Preconditions;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
- * Exports {@link RyaSubGraph}s to Kafka from Rya Fluo Application 
+ * Exports {@link RyaSubGraph}s to Kafka from Rya Fluo Application
  *
  */
 public class KafkaRyaSubGraphExporter implements IncrementalRyaSubGraphExporter {
 
     private final KafkaProducer<String, RyaSubGraph> producer;
-    private static final Logger log = Logger.getLogger(KafkaRyaSubGraphExporter.class);
+    private static final Logger log = LoggerFactory.getLogger(KafkaRyaSubGraphExporter.class);
 
-    public KafkaRyaSubGraphExporter(KafkaProducer<String, RyaSubGraph> producer) {
+    public KafkaRyaSubGraphExporter(final KafkaProducer<String, RyaSubGraph> producer) {
         checkNotNull(producer);
         this.producer = producer;
     }
-    
+
     /**
      * Exports the RyaSubGraph to a Kafka topic equivalent to the result returned by {@link RyaSubGraph#getId()}
      * @param subgraph - RyaSubGraph exported to Kafka
      * @param contructID - rowID of result that is exported. Used for logging purposes.
      */
     @Override
-    public void export(String constructID, RyaSubGraph subGraph) throws ResultExportException {
+    public void export(final String constructID, final RyaSubGraph subGraph) throws ResultExportException {
         checkNotNull(constructID);
         checkNotNull(subGraph);
         try {

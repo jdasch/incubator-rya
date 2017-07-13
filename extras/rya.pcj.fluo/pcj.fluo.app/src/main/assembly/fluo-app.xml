@@ -1,0 +1,29 @@
+<assembly xmlns="http://maven.apache.org/ASSEMBLY/2.0.0"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/ASSEMBLY/2.0.0 http://maven.apache.org/xsd/assembly-2.0.0.xsd">
+
+	<!-- This jar is similar to jar-with-dependencies, but excludes dependencies 
+		that are provided by the fluo runtime. Typically this problem is something 
+		that would be handled by properly scoping this project's dependencies as 
+		provided, however that then causes problems with rya projects dependent on 
+		this project. -->
+	<id>fluo-app</id>
+	<formats>
+		<format>jar</format>
+	</formats>
+	<includeBaseDirectory>false</includeBaseDirectory>
+	<dependencySets>
+		<dependencySet>
+			<outputDirectory>/</outputDirectory>
+			<useProjectArtifact>true</useProjectArtifact>
+			<unpack>true</unpack>
+			<scope>runtime</scope>
+			<excludes>
+				<exclude>org.apache.hadoop:hadoop-common</exclude>
+				<exclude>org.apache.accumulo:accumulo-core</exclude>
+				<exclude>org.apache.fluo:fluo-api</exclude>
+			</excludes>
+			<useTransitiveFiltering>true</useTransitiveFiltering>
+		</dependencySet>
+	</dependencySets>
+</assembly>

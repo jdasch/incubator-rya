@@ -45,7 +45,6 @@ public interface PrecomputedJoinStorage extends AutoCloseable {
      * Create a new Precomputed Join index.
      *
      * @param sparql - A SPAQL query that defines how the index will be updated. (not null)
-     * @param varOrders - The variable orders the results within the table will be written to. (not null)
      * @return A unique identifier for the index.
      */
     public String createPcj(final String sparql) throws PCJStorageException;

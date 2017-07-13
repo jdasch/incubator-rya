@@ -30,7 +30,6 @@ import org.apache.fluo.api.data.Column;
 import org.apache.fluo.api.data.ColumnValue;
 import org.apache.fluo.api.data.RowColumn;
 import org.apache.fluo.api.data.Span;
-import org.apache.log4j.Logger;
 import org.apache.rya.indexing.pcj.fluo.app.JoinResultUpdater.IterativeJoin;
 import org.apache.rya.indexing.pcj.fluo.app.JoinResultUpdater.LeftOuterJoin;
 import org.apache.rya.indexing.pcj.fluo.app.JoinResultUpdater.NaturalJoin;
@@ -43,16 +42,17 @@ import org.apache.rya.indexing.pcj.fluo.app.util.RowKeyUtil;
 import org.apache.rya.indexing.pcj.storage.accumulo.VariableOrder;
 import org.apache.rya.indexing.pcj.storage.accumulo.VisibilityBindingSet;
 import org.apache.rya.indexing.pcj.storage.accumulo.VisibilityBindingSetSerDe;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.google.common.base.Preconditions;
-
 /*
  * Performs updates to BindingSets in the JoinBindingSet column in batch fashion.
- * 
+ *
  */
 public class JoinBatchBindingSetUpdater extends AbstractBatchBindingSetUpdater {
 
-    private static final Logger log = Logger.getLogger(JoinBatchBindingSetUpdater.class);
+    private static final Logger log = LoggerFactory.getLogger(JoinBatchBindingSetUpdater.class);
     private static final VisibilityBindingSetSerDe BS_SERDE = new VisibilityBindingSetSerDe();
     private static final FluoQueryMetadataDAO dao = new FluoQueryMetadataDAO();
 
@@ -66,15 +66,15 @@ public class JoinBatchBindingSetUpdater extends AbstractBatchBindingSetUpdater {
      * entries that need to be updated exceeds the batch size, the row of the
      * first unprocessed BindingSets is used to create a new JoinBatch job to
      * process the remaining BindingSets.
-     * @throws Exception 
+     * @throws Exception
      */
     @Override
-    public void processBatch(TransactionBase tx, Bytes row, BatchInformation batch) throws Exception {
+    public void processBatch(final TransactionBase tx, final Bytes row, final BatchInformation batch) throws Exception {
         super.processBatch(tx, row, batch);
-        String nodeId = BatchRowKeyUtil.getNodeId(row);
+        final String nodeId = BatchRowKeyUtil.getNodeId(row);
         Preconditions.checkArgument(batch instanceof JoinBatchInformation);
-        JoinBatchInformation joinBatch = (JoinBatchInformation) batch;
-        Task task = joinBatch.getTask();
+        final JoinBatchInformation joinBatch = (JoinBatchInformation) batch;
+        final Task task = joinBatch.getTask();
 
         // Figure out which join algorithm we are going to use.
         final IterativeJoin joinAlgorithm;
@@ -89,12 +89,12 @@ public class JoinBatchBindingSetUpdater extends AbstractBatchBindingSetUpdater {
             throw new RuntimeException("Unsupported JoinType: " + joinBatch.getJoinType());
         }
 
-        Set<VisibilityBindingSet> bsSet = new HashSet<>();
-        Optional<RowColumn> rowCol = fillSiblingBatch(tx, joinBatch, bsSet);
+        final Set<VisibilityBindingSet> bsSet = new HashSet<>();
+        final Optional<RowColumn> rowCol = fillSiblingBatch(tx, joinBatch, bsSet);
 
         // Iterates over the resulting BindingSets from the join.
         final Iterator<VisibilityBindingSet> newJoinResults;
-        VisibilityBindingSet bs = joinBatch.getBs();
+        final VisibilityBindingSet bs = joinBatch.getBs();
         if (joinBatch.getSide() == Side.LEFT) {
             newJoinResults = joinAlgorithm.newLeftResult(bs, bsSet.iterator());
         } else {
@@ -107,9 +107,9 @@ public class JoinBatchBindingSetUpdater extends AbstractBatchBindingSetUpdater {
         while (newJoinResults.hasNext()) {
             final VisibilityBindingSet newJoinResult = newJoinResults.next();
             //create BindingSet value
-            Bytes bsBytes = BS_SERDE.serialize(newJoinResult);
+            final Bytes bsBytes = BS_SERDE.serialize(newJoinResult);
             //make rowId
-            Bytes rowKey = RowKeyUtil.makeRowKey(nodeId, joinVarOrder, newJoinResult);
+            final Bytes rowKey = RowKeyUtil.makeRowKey(nodeId, joinVarOrder, newJoinResult);
             final Column col = FluoQueryColumns.JOIN_BINDING_SET;
             processTask(tx, task, rowKey, col, bsBytes);
         }
@@ -117,14 +117,14 @@ public class JoinBatchBindingSetUpdater extends AbstractBatchBindingSetUpdater {
         // if batch limit met, there are additional entries to process
         // update the span and register updated batch job
         if (rowCol.isPresent()) {
-            Span newSpan = getNewSpan(rowCol.get(), joinBatch.getSpan());
+            final Span newSpan = getNewSpan(rowCol.get(), joinBatch.getSpan());
             joinBatch.setSpan(newSpan);
             BatchInformationDAO.addBatch(tx, nodeId, joinBatch);
         }
 
     }
 
-    private void processTask(TransactionBase tx, Task task, Bytes row, Column column, Bytes value) {
+    private void processTask(final TransactionBase tx, final Task task, final Bytes row, final Column column, final Bytes value) {
         switch (task) {
         case Add:
             tx.set(row, column, value);
@@ -145,28 +145,28 @@ public class JoinBatchBindingSetUpdater extends AbstractBatchBindingSetUpdater {
      * Fetches batch to be processed by scanning over the Span specified by the
      * {@link JoinBatchInformation}. The number of results is less than or equal
      * to the batch size specified by the JoinBatchInformation.
-     * 
+     *
      * @param tx - Fluo transaction in which batch operation is performed
      * @param batch - batch order to be processed
      * @param bsSet- set that batch results are added to
      * @return Set - containing results of sibling scan.
-     * @throws Exception 
+     * @throws Exception
      */
-    private Optional<RowColumn> fillSiblingBatch(TransactionBase tx, JoinBatchInformation batch, Set<VisibilityBindingSet> bsSet) throws Exception {
+    private Optional<RowColumn> fillSiblingBatch(final TransactionBase tx, final JoinBatchInformation batch, final Set<VisibilityBindingSet> bsSet) throws Exception {
 
-        Span span = batch.getSpan();
-        Column column = batch.getColumn();
-        int batchSize = batch.getBatchSize();
+        final Span span = batch.getSpan();
+        final Column column = batch.getColumn();
+        final int batchSize = batch.getBatchSize();
 
-        RowScanner rs = tx.scanner().over(span).fetch(column).byRow().build();
-        Iterator<ColumnScanner> colScannerIter = rs.iterator();
+        final RowScanner rs = tx.scanner().over(span).fetch(column).byRow().build();
+        final Iterator<ColumnScanner> colScannerIter = rs.iterator();
 
         boolean batchLimitMet = false;
         Bytes row = span.getStart().getRow();
         while (colScannerIter.hasNext() && !batchLimitMet) {
-            ColumnScanner colScanner = colScannerIter.next();
+            final ColumnScanner colScanner = colScannerIter.next();
             row = colScanner.getRow();
-            Iterator<ColumnValue> iter = colScanner.iterator();
+            final Iterator<ColumnValue> iter = colScanner.iterator();
             while (iter.hasNext()) {
                 if (bsSet.size() >= batchSize) {
                     batchLimitMet = true;

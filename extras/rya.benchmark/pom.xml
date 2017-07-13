@@ -50,6 +50,12 @@
             <artifactId>rya.indexing</artifactId>
         </dependency>
         
+        <!-- fluo -->
+        <dependency>
+            <groupId>org.apache.fluo</groupId>
+            <artifactId>fluo-core</artifactId>
+        </dependency>
+        
         <!-- Utils -->
         <dependency>
             <groupId>com.google.guava</groupId>
