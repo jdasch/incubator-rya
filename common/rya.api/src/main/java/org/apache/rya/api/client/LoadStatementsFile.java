@@ -31,14 +31,16 @@ import edu.umd.cs.findbugs.annotations.NonNull;
 @DefaultAnnotation(NonNull.class)
 public interface LoadStatementsFile {
 
-    /**
-     * Loads a local file of RDF statements into an instance of Rya.
-     *
-     * @param ryaInstanceName - The name of the Rya instance the statements will be loaded into. (not null)
-     * @param statementsFile - A file that holds RDF statements that will be loaded. (not null)
-     * @param format - The format of the statements file. (not null)
-     * @throws InstanceDoesNotExistException No instance of Rya exists for the provided name.
-     * @throws RyaClientException Something caused the command to fail.
-     */
-    public void loadStatements(String ryaInstanceName, Path statementsFile, RDFFormat format) throws InstanceDoesNotExistException, RyaClientException;
+	/**
+	 * Loads a local file of RDF statements into an instance of Rya.
+	 *
+	 * @param ryaInstanceName - The name of the Rya instance the statements will be loaded into. (not null)
+	 * @param statementsFile - A file that holds RDF statements that will be loaded. (not null)
+	 * @param format - The format of the statements file. (not null)
+	 * @param flushEachUpdate - If true, each statement will be flushed individually. If false, statements will be
+	 *            grouped in an unspecified manner. A value of false will typically yield higher ingest rates.
+	 * @throws InstanceDoesNotExistException No instance of Rya exists for the provided name.
+	 * @throws RyaClientException Something caused the command to fail.
+	 */
+    public void loadStatements(String ryaInstanceName, Path statementsFile, RDFFormat format, boolean flushEachUpdate) throws InstanceDoesNotExistException, RyaClientException;
 }

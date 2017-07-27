@@ -60,7 +60,7 @@ public class AccumuloLoadStatementsFileIT extends AccumuloITBase {
                 getZookeepers());
 
         final RyaClient ryaClient = AccumuloRyaClientFactory.build(connectionDetails, getConnector());
-        ryaClient.getLoadStatementsFile().loadStatements(getRyaInstanceName(), Paths.get("src/test/resources/example.ttl"), RDFFormat.TURTLE);
+        ryaClient.getLoadStatementsFile().loadStatements(getRyaInstanceName(), Paths.get("src/test/resources/example.ttl"), RDFFormat.TURTLE, true);
     }
 
     @Test
@@ -87,7 +87,7 @@ public class AccumuloLoadStatementsFileIT extends AccumuloITBase {
         install.install(getRyaInstanceName(), installConfig);
 
         // Load the test statement file.
-        ryaClient.getLoadStatementsFile().loadStatements(getRyaInstanceName(), Paths.get("src/test/resources/example.ttl"), RDFFormat.TURTLE);
+        ryaClient.getLoadStatementsFile().loadStatements(getRyaInstanceName(), Paths.get("src/test/resources/example.ttl"), RDFFormat.TURTLE, true);
 
         // Verify that the statements were loaded.
         final ValueFactory vf = new ValueFactoryImpl();
@@ -123,7 +123,7 @@ public class AccumuloLoadStatementsFileIT extends AccumuloITBase {
         assertEquals(expected, statements);
     }
 
-    private boolean isRyaMetadataStatement(ValueFactory vf, Statement statement) {
+    private boolean isRyaMetadataStatement(final ValueFactory vf, final Statement statement) {
         return statement.getPredicate().equals( vf.createURI("urn:org.apache.rya/2012/05#version") ) ||
                 statement.getPredicate().equals( vf.createURI("urn:org.apache.rya/2012/05#rts") );
     }
