@@ -31,23 +31,23 @@ import jline.console.ConsoleReader;
 public interface ConsolePrinter {
 
     /**
-	 * Prints the provided content to the console.
-	 * @param cs - Output the specified String to the console.
-	 * @throws IOException There was a problem reading the user's input.
-	 */
+     * Prints the provided content to the console.
+     * @param cs - Output the specified String to the console.
+     * @throws IOException There was a problem reading the user's input.
+     */
     public void print(CharSequence cs) throws IOException;
 
     /**
-	 * Prints the provided content to the console with a newline.
-	 * @param cs - Output the specified String to the console.
-	 * @throws IOException There was a problem reading the user's input.
-	 */
+     * Prints the provided content to the console with a newline.
+     * @param cs - Output the specified String to the console.
+     * @throws IOException There was a problem reading the user's input.
+     */
     public void println(CharSequence cs) throws IOException;
 
     /**
-	 * Prints a newline.
-	 * @throws IOException There was a problem reading the user's input.
-	 */
+     * Prints a newline.
+     * @throws IOException There was a problem reading the user's input.
+     */
     public void println() throws IOException;
 
     /**
@@ -67,19 +67,19 @@ public interface ConsolePrinter {
             getReader().print(cs);
         }
 
-		@Override
-		public void println(final CharSequence cs) throws IOException {
-			getReader().println(cs);
-		}
+        @Override
+        public void println(final CharSequence cs) throws IOException {
+            getReader().println(cs);
+        }
 
-		@Override
-		public void println() throws IOException {
-			getReader().println();
-		}
+        @Override
+        public void println() throws IOException {
+            getReader().println();
+        }
 
-		@Override
-		public void flush() throws IOException {
-			getReader().flush();
-		}
+        @Override
+        public void flush() throws IOException {
+            getReader().flush();
+        }
     }
 }
