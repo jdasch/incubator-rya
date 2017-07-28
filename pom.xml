@@ -274,6 +274,11 @@ under the License.
             </dependency>
             <dependency>
                 <groupId>org.openrdf.sesame</groupId>
+                <artifactId>sesame-queryresultio-text</artifactId>
+                <version>${openrdf.sesame.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.openrdf.sesame</groupId>
                 <artifactId>sesame-rio-rdfxml</artifactId>
                 <version>${openrdf.sesame.version}</version>
             </dependency>
