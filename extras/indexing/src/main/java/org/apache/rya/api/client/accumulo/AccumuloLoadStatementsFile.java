@@ -70,7 +70,7 @@ public class AccumuloLoadStatementsFile extends AccumuloCommand implements LoadS
     }
 
     @Override
-    public void loadStatements(final String ryaInstanceName, final Path statementsFile, final RDFFormat format, final boolean flushEachUpdate) throws InstanceDoesNotExistException, RyaClientException {
+    public void loadStatements(final String ryaInstanceName, final Path statementsFile, final RDFFormat format) throws InstanceDoesNotExistException, RyaClientException {
         requireNonNull(ryaInstanceName);
         requireNonNull(statementsFile);
         requireNonNull(format);
@@ -87,7 +87,7 @@ public class AccumuloLoadStatementsFile extends AccumuloCommand implements LoadS
         try {
             // Get a Sail object that is connected to the Rya instance.
             final AccumuloRdfConfiguration ryaConf = getAccumuloConnectionDetails().buildAccumuloRdfConfiguration(ryaInstanceName);
-            ryaConf.setFlush(flushEachUpdate);
+            ryaConf.setFlush(false); //RYA-327 should address this hardcoded value.
             sail = RyaSailFactory.getInstance(ryaConf);
 
             // Load the file.

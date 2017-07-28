@@ -17,4 +17,9 @@
 # under the License.
 #
 
-SELECT * WHERE { ?person <http://isA> ?noun }
+<http://Thing1> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://types#Monkey> .
+<http://Thing1> <http://predicates#name> "Thing 1".
+<http://Thing2> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://types#Gorilla> .
+<http://Thing2> <http://predicates#name> "Thing 2".
+<http://Thing3> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://types#Monkey> .
+<http://Thing3> <http://predicates#name> "Thing 3".

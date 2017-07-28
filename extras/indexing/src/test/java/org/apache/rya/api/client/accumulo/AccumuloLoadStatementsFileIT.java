@@ -60,7 +60,7 @@ public class AccumuloLoadStatementsFileIT extends AccumuloITBase {
                 getZookeepers());
 
         final RyaClient ryaClient = AccumuloRyaClientFactory.build(connectionDetails, getConnector());
-        ryaClient.getLoadStatementsFile().loadStatements(getRyaInstanceName(), Paths.get("src/test/resources/example.ttl"), RDFFormat.TURTLE, true);
+        ryaClient.getLoadStatementsFile().loadStatements(getRyaInstanceName(), Paths.get("src/test/resources/example.ttl"), RDFFormat.TURTLE);
     }
 
     @Test
@@ -87,7 +87,7 @@ public class AccumuloLoadStatementsFileIT extends AccumuloITBase {
         install.install(getRyaInstanceName(), installConfig);
 
         // Load the test statement file.
-        ryaClient.getLoadStatementsFile().loadStatements(getRyaInstanceName(), Paths.get("src/test/resources/example.ttl"), RDFFormat.TURTLE, true);
+        ryaClient.getLoadStatementsFile().loadStatements(getRyaInstanceName(), Paths.get("src/test/resources/example.ttl"), RDFFormat.TURTLE);
 
         // Verify that the statements were loaded.
         final ValueFactory vf = new ValueFactoryImpl();

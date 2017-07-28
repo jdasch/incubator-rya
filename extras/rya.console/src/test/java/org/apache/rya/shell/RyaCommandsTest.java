@@ -53,7 +53,6 @@ public class RyaCommandsTest {
         final String instanceName = "unitTest";
         final String statementsFile = "/path/to/statements.nt";
         final String format = null;
-        final Boolean flushEachUpdate = Boolean.FALSE;
 
         final LoadStatementsFile mockLoadStatementsFile = mock(LoadStatementsFile.class);
         final RyaClient mockCommands = mock(RyaClient.class);
@@ -69,10 +68,10 @@ public class RyaCommandsTest {
 
         // Execute the command.
         final RyaCommands commands = new RyaCommands(state, mockSparqlPrompt, mockConsolePrinter);
-        final String message = commands.loadData(statementsFile, format, flushEachUpdate);
+        final String message = commands.loadData(statementsFile, format);
 
         // Verify the values that were provided to the command were passed through to LoadStatementsFile.
-        verify(mockLoadStatementsFile).loadStatements(instanceName, Paths.get(statementsFile), RDFFormat.NTRIPLES, flushEachUpdate);
+        verify(mockLoadStatementsFile).loadStatements(instanceName, Paths.get(statementsFile), RDFFormat.NTRIPLES);
 
         // Verify a message is returned that explains what was created.
         assertTrue(message.startsWith("Loaded the file: '" + statementsFile +"' successfully in "));
@@ -85,7 +84,6 @@ public class RyaCommandsTest {
         final String instanceName = "unitTest";
         final String statementsFile = "/path/to/statements.nt";
         final String format = "N-TRIPLES";
-        final Boolean flushEachUpdate = Boolean.FALSE;
 
         final LoadStatementsFile mockLoadStatementsFile = mock(LoadStatementsFile.class);
         final RyaClient mockCommands = mock(RyaClient.class);
@@ -101,10 +99,10 @@ public class RyaCommandsTest {
 
         // Execute the command.
         final RyaCommands commands = new RyaCommands(state, mockSparqlPrompt, mockConsolePrinter);
-        final String message = commands.loadData(statementsFile, format, flushEachUpdate);
+        final String message = commands.loadData(statementsFile, format);
 
         // Verify the values that were provided to the command were passed through to LoadStatementsFile.
-        verify(mockLoadStatementsFile).loadStatements(instanceName, Paths.get(statementsFile), RDFFormat.NTRIPLES, flushEachUpdate);
+        verify(mockLoadStatementsFile).loadStatements(instanceName, Paths.get(statementsFile), RDFFormat.NTRIPLES);
 
         // Verify a message is returned that explains what was created.
         assertTrue(message.startsWith("Loaded the file: '" + statementsFile +"' successfully in "));
@@ -117,7 +115,6 @@ public class RyaCommandsTest {
         final String instanceName = "unitTest";
         final String statementsFile = "/path/to/statements.nt";
         final String format = "INVALID_FORMAT_NAME";
-        final Boolean flushEachUpdate = Boolean.FALSE;
 
         final LoadStatementsFile mockLoadStatementsFile = mock(LoadStatementsFile.class);
         final RyaClient mockCommands = mock(RyaClient.class);
@@ -134,7 +131,7 @@ public class RyaCommandsTest {
         // Execute the command.
         final RyaCommands commands = new RyaCommands(state, mockSparqlPrompt, mockConsolePrinter);
 
-        commands.loadData(statementsFile, format, flushEachUpdate);
+        commands.loadData(statementsFile, format);
     }
 
     @Test(expected = RuntimeException.class)
@@ -143,7 +140,6 @@ public class RyaCommandsTest {
         final String instanceName = "unitTest";
         final String statementsFile = "/path/to/statements.invalidFormat";
         final String format = null;
-        final Boolean flushEachUpdate = Boolean.FALSE;
 
         final LoadStatementsFile mockLoadStatementsFile = mock(LoadStatementsFile.class);
         final RyaClient mockCommands = mock(RyaClient.class);
@@ -160,7 +156,7 @@ public class RyaCommandsTest {
         // Execute the command.
         final RyaCommands commands = new RyaCommands(state, mockSparqlPrompt, mockConsolePrinter);
 
-        commands.loadData(statementsFile, format, flushEachUpdate);
+        commands.loadData(statementsFile, format);
     }
 
     @Test

@@ -17,4 +17,10 @@
 # under the License.
 #
 
-SELECT * WHERE { ?person <http://isA> ?noun }
+connect-accumulo --username accumulo_user --instanceName accumulo_instance --zookeepers zoo1,zoo2,zoo3,zoo4,zoo5
+install-with-parameters --instanceName rya_example_
+connect-rya --instance rya_example_
+#load-data --file examples/ontology.owl
+load-data --file examples/triples.nt
+sparql-query --file examples/Query1.sparql
+# uninstall

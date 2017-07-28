@@ -92,16 +92,13 @@ public class RyaCommands implements CommandMarker {
             @CliOption(key = { "file" }, mandatory = true, help = "A local file containing RDF Statements that is to be loaded.")
             final String file,
             @CliOption(key = { "format" }, mandatory = false, help = "The format of the supplied RDF Statements file. [RDF/XML, N-Triples, Turtle, N3, TriX, TriG, BinaryRDF, N-Quads, JSON-LD, RDF/JSON, RDFa]")
-            final String format,
-            @CliOption(key = { "flushEachUpdate" }, mandatory = false, specifiedDefaultValue = "true", unspecifiedDefaultValue = "false", help = "If true, each update shall be flushed individually.  If false, updates shall be flushed as groups.  [default: false]")
-            final Boolean flushEachUpdate
+            final String format
             ) {
         // Fetch the command that is connected to the store.
         final ShellState shellState = state.getShellState();
         final RyaClient commands = shellState.getConnectedCommands().get();
         final Optional<String> ryaInstanceName = shellState.getRyaInstanceName();
         try {
-            Objects.requireNonNull(flushEachUpdate);
             final long start = System.currentTimeMillis();
             final File rdfInputFile = new File(file);
 
@@ -121,8 +118,7 @@ public class RyaCommands implements CommandMarker {
                     consolePrinter.flush();
                 }
             }
-            commands.getLoadStatementsFile().loadStatements(ryaInstanceName.get(), rdfInputFile.toPath(), rdfFormat,
-                    flushEachUpdate);
+            commands.getLoadStatementsFile().loadStatements(ryaInstanceName.get(), rdfInputFile.toPath(), rdfFormat);
 
             final String seconds = new DecimalFormat("0.0##").format((System.currentTimeMillis() - start) / 1000.0);
             return "Loaded the file: '" + file + "' successfully in " + seconds + " seconds.";

@@ -17,4 +17,8 @@
 # under the License.
 #
 
-SELECT * WHERE { ?person <http://isA> ?noun }
+PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+SELECT ?thing ?name WHERE {
+  ?thing <http://predicates#name> ?name .
+  ?thing rdf:type <http://types#Monkey> .
+}
