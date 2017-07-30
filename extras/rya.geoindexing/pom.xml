@@ -216,6 +216,37 @@
 					</execution>
 				</executions>
 			</plugin>
+			<plugin>
+				<artifactId>maven-failsafe-plugin</artifactId>
+				<executions>
+					<execution>
+						<!-- Override the parent pom definition of 'integration-test' to exclude problematic ITs. -->
+						<id>integration-test</id>
+						<goals>
+							<goal>integration-test</goal>
+							<goal>verify</goal>
+						</goals>
+						<configuration>
+							<excludes>
+								<exclude>**/MongoGeoIT.java</exclude>
+							</excludes>
+						</configuration>
+					</execution>
+					<execution>
+						<!-- Run problematic ITs in isolation. -->
+						<id>integration-test-isolation</id>
+						<goals>
+							<goal>integration-test</goal>
+							<goal>verify</goal>
+						</goals>
+						<configuration>
+							<includes>
+								<include>**/MongoGeoIT.java</include>
+							</includes>
+						</configuration>
+					</execution>
+				</executions>
+			</plugin>
 		</plugins>
 	</build>
 </project>
