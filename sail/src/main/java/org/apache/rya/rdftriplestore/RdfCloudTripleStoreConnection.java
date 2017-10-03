@@ -230,6 +230,10 @@ public class RdfCloudTripleStoreConnection extends SailConnectionBase {
         tupleExpr = tupleExpr.clone();
 
         final RdfCloudTripleStoreConfiguration queryConf = store.getConf().clone();
+        if (queryConf == null) {
+            // Should not happen, but this is better than a null dereference error.
+            throw new SailException("Cloning store.getConf() returned null, aborting.");
+        }
         if (bindings != null) {
             final Binding dispPlan = bindings.getBinding(RdfCloudTripleStoreConfiguration.CONF_QUERYPLAN_FLAG);
             if (dispPlan != null) {
