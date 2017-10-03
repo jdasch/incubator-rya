@@ -83,17 +83,17 @@ public class MongoConnectorFactory {
     private static void createMongoClientForServer(final Configuration conf)
             throws ConfigurationRuntimeException, MongoException {
         // Connect to a running Mongo server
-        final String host = requireNonNull(conf.get(MongoDBRdfConfiguration.MONGO_INSTANCE), MSG_INTRO+"host name is required");
+        final String host = requireNonNull(conf.get(MongoDBRdfConfiguration.MONGO_INSTANCE), MSG_INTRO + "Instance/host name is required");
         final int port = requireNonNullInt(conf.get(MongoDBRdfConfiguration.MONGO_INSTANCE_PORT), MSG_INTRO+"Port number is required.");
         final ServerAddress server = new ServerAddress(host, port);
         // check for authentication credentials
         if (conf.get(MongoDBRdfConfiguration.MONGO_USER) != null) {
             final String username = conf.get(MongoDBRdfConfiguration.MONGO_USER);
-            final String dbName = requireNonNull(conf.get(MongoDBRdfConfiguration.MONGO_DB_NAME),
+            final String dbName = requireNonNull(conf.get(MongoDBRdfConfiguration.MONGO_DB_NAME), //
                     MSG_INTRO + MongoDBRdfConfiguration.MONGO_DB_NAME + " is null but required configuration if "
                             + MongoDBRdfConfiguration.MONGO_USER + " is configured.");
             final char[] pswd = requireNonNull(conf.get(MongoDBRdfConfiguration.MONGO_USER_PASSWORD),
-                    MSG_INTRO + MongoDBRdfConfiguration.MONGO_USER_PASSWORD + " is null but required configuration if "
+                    MSG_INTRO + "The Mongodb user password is null but required configuration if " //
                             + MongoDBRdfConfiguration.MONGO_USER + " is configured.").toCharArray();
             final MongoCredential cred = MongoCredential.createCredential(username, dbName, pswd);
             mongoClient = new MongoClient(server, Arrays.asList(cred));
