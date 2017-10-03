@@ -28,14 +28,12 @@ import java.io.DataOutputStream;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
-import org.apache.accumulo.core.Constants;
 import org.apache.accumulo.core.client.AccumuloSecurityException;
-import org.apache.accumulo.core.client.mapreduce.AccumuloInputFormat;
 import org.apache.accumulo.core.client.BatchWriterConfig;
+import org.apache.accumulo.core.client.mapreduce.AccumuloInputFormat;
 import org.apache.accumulo.core.client.mapreduce.AccumuloOutputFormat;
 import org.apache.accumulo.core.client.mapreduce.lib.util.ConfiguratorBase;
 import org.apache.accumulo.core.client.security.tokens.PasswordToken;
@@ -87,13 +85,13 @@ public class AccumuloStorage extends LoadFunc implements StoreFuncInterface, Ord
 
     protected String inst;
     protected String zookeepers;
-    protected String user = "";
-    protected String password = "";
+    protected String user;
+    protected String userP;
     protected String table;
     protected Text tableName;
     protected String auths;
-    protected Authorizations authorizations = Constants.NO_AUTHS;
-    protected List<Pair<Text, Text>> columnFamilyColumnQualifierPairs = new LinkedList<Pair<Text, Text>>();
+    protected Authorizations authorizations;
+    protected List<Pair<Text, Text>> columnFamilyColumnQualifierPairs;
 
     protected Collection<Range> ranges = new ArrayList<Range>();
     protected boolean mock = false;
@@ -155,10 +153,10 @@ public class AccumuloStorage extends LoadFunc implements StoreFuncInterface, Ord
 
         if (!ConfiguratorBase.isConnectorInfoSet(AccumuloInputFormat.class, conf)) {
             try {
-				AccumuloInputFormat.setConnectorInfo(job, user, new PasswordToken(password.getBytes()));
-			} catch (AccumuloSecurityException e) {
-				throw new RuntimeException(e);
-			}
+                AccumuloInputFormat.setConnectorInfo(job, user, new PasswordToken(userP.getBytes()));
+            } catch (AccumuloSecurityException e) {
+                throw new RuntimeException(e);
+            }
             AccumuloInputFormat.setInputTableName(job, table);
     		AccumuloInputFormat.setScanAuthorizations(job, authorizations);
             if (!mock) {
@@ -201,7 +199,7 @@ public class AccumuloStorage extends LoadFunc implements StoreFuncInterface, Ord
                 } else if (pair[0].equals("user")) {
                     user = pair[1];
                 } else if (pair[0].equals("password")) {
-                    password = pair[1];
+                    userP = pair[1];
                 } else if (pair[0].equals("zookeepers")) {
                     zookeepers = pair[1];
                 } else if (pair[0].equals("auths")) {
@@ -268,21 +266,24 @@ public class AccumuloStorage extends LoadFunc implements StoreFuncInterface, Ord
     }
 
     /* StoreFunc methods */
+    @Override
     public void setStoreFuncUDFContextSignature(String signature) {
 
     }
 
+    @Override
     public String relToAbsPathForStoreLocation(String location, Path curDir) throws IOException {
         return relativeToAbsolutePath(location, curDir);
     }
 
+    @Override
     public void setStoreLocation(String location, Job job) throws IOException {
         conf = job.getConfiguration();
         setLocationFromUri(location, job);
 
         if (!conf.getBoolean(AccumuloOutputFormat.class.getSimpleName() + ".configured", false)) {
             try {
-				AccumuloOutputFormat.setConnectorInfo(job, user, new PasswordToken(password.getBytes()));
+                AccumuloOutputFormat.setConnectorInfo(job, user, new PasswordToken(userP.getBytes()));
 			} catch (AccumuloSecurityException e) {
 				throw new RuntimeException(e);
 			}
@@ -296,18 +297,22 @@ public class AccumuloStorage extends LoadFunc implements StoreFuncInterface, Ord
         }
     }
 
+    @Override
     public OutputFormat getOutputFormat() {
         return new AccumuloOutputFormat();
     }
 
+    @Override
     public void checkSchema(ResourceSchema schema) throws IOException {
         // we don't care about types, they all get casted to ByteBuffers
     }
 
+    @Override
     public void prepareToWrite(RecordWriter writer) {
         this.writer = writer;
     }
 
+    @Override
     public void putNext(Tuple t) throws ExecException, IOException {
         Mutation mut = new Mutation(objToText(t.get(0)));
         Text cf = objToText(t.get(1));
@@ -363,6 +368,7 @@ public class AccumuloStorage extends LoadFunc implements StoreFuncInterface, Ord
         return ((DataByteArray) o).get();
     }
 
+    @Override
     public void cleanupOnFailure(String failure, Job job) {
     }
 

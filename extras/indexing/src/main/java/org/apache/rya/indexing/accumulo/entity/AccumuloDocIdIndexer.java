@@ -22,7 +22,6 @@ package org.apache.rya.indexing.accumulo.entity;
 
 import static org.apache.rya.api.RdfCloudTripleStoreConstants.DELIM_BYTE;
 import static org.apache.rya.api.RdfCloudTripleStoreConstants.TYPE_DELIM_BYTE;
-import info.aduna.iteration.CloseableIteration;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -35,17 +34,6 @@ import java.util.Map.Entry;
 import java.util.NoSuchElementException;
 import java.util.Set;
 
-import org.apache.rya.accumulo.AccumuloRdfConfiguration;
-import org.apache.rya.accumulo.documentIndex.DocIndexIteratorUtil;
-import org.apache.rya.accumulo.documentIndex.DocumentIndexIntersectingIterator;
-import org.apache.rya.api.RdfCloudTripleStoreConfiguration;
-import org.apache.rya.api.domain.RyaURI;
-import org.apache.rya.api.resolver.RyaContext;
-import org.apache.rya.api.resolver.RyaToRdfConversions;
-import org.apache.rya.api.resolver.RyaTypeResolverException;
-import org.apache.rya.indexing.DocIdIndexer;
-import org.apache.rya.indexing.accumulo.ConfigUtils;
-
 import org.apache.accumulo.core.client.AccumuloException;
 import org.apache.accumulo.core.client.AccumuloSecurityException;
 import org.apache.accumulo.core.client.BatchScanner;
@@ -57,6 +45,16 @@ import org.apache.accumulo.core.data.Range;
 import org.apache.accumulo.core.data.Value;
 import org.apache.accumulo.core.security.Authorizations;
 import org.apache.hadoop.io.Text;
+import org.apache.rya.accumulo.AccumuloRdfConfiguration;
+import org.apache.rya.accumulo.documentIndex.DocIndexIteratorUtil;
+import org.apache.rya.accumulo.documentIndex.DocumentIndexIntersectingIterator;
+import org.apache.rya.api.RdfCloudTripleStoreConfiguration;
+import org.apache.rya.api.domain.RyaURI;
+import org.apache.rya.api.resolver.RyaContext;
+import org.apache.rya.api.resolver.RyaToRdfConversions;
+import org.apache.rya.api.resolver.RyaTypeResolverException;
+import org.apache.rya.indexing.DocIdIndexer;
+import org.apache.rya.indexing.accumulo.ConfigUtils;
 import org.openrdf.query.BindingSet;
 import org.openrdf.query.MalformedQueryException;
 import org.openrdf.query.QueryEvaluationException;
@@ -71,6 +69,8 @@ import com.google.common.base.Preconditions;
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.Sets;
 import com.google.common.primitives.Bytes;
+
+import info.aduna.iteration.CloseableIteration;
 
 public class AccumuloDocIdIndexer implements DocIdIndexer {
 
@@ -97,6 +97,7 @@ public class AccumuloDocIdIndexer implements DocIdIndexer {
             pq1 = parser.parseQuery(sparqlQuery, null);
         } catch (MalformedQueryException e) {
             e.printStackTrace();
+            throw new QueryEvaluationException(e);
         }
 
         TupleExpr te1 = pq1.getTupleExpr();
