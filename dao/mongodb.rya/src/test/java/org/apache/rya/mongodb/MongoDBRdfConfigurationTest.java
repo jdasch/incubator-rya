@@ -20,6 +20,7 @@ package org.apache.rya.mongodb;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
@@ -28,6 +29,8 @@ import java.util.Arrays;
 import java.util.Properties;
 
 import org.junit.Test;
+
+import com.mongodb.MongoClient;
 
 public class MongoDBRdfConfigurationTest {
 
@@ -92,7 +95,7 @@ public class MongoDBRdfConfigurationTest {
         assertEquals(conf.isInfer(), useInference);
         assertEquals(conf.isDisplayQueryPlan(), displayPlan);
         assertEquals(conf.getMongoInstance(), "host");
-        assertEquals(conf.getBoolean(".useMockInstance", false), useMock);
+        assertEquals(conf.getBoolean(MongoDBRdfConfiguration.USE_MOCK_MONGO, false), useMock);
         assertEquals(conf.getMongoPort(), "1000");
         assertEquals(conf.getMongoDBName(), "dbname");
         assertEquals(conf.getCollectionName(), "prefix_");
@@ -100,4 +103,44 @@ public class MongoDBRdfConfigurationTest {
         assertEquals(conf.get(MongoDBRdfConfiguration.MONGO_USER_PASSWORD), password);
     }
 
+    /**
+     * Test all the error checks when creating a new client.
+     * Does not actually create the client, instead it fails on the last test.
+     */
+    @Test
+    public void testFactoryErrorChecking() {
+        String prefix = "prefix_";
+        String auth = "U,V,W";
+        String visibility = "U,W";
+        String user = "user";
+        String password = "password";
+        boolean useMock = true;
+        boolean useInference = true;
+        boolean displayPlan = false;
+
+        // leave password empty for this test: .setMongoPassword(password)
+        MongoDBRdfConfiguration conf = new MongoDBRdfConfiguration().getBuilder()
+                        .setVisibilities(visibility) //
+                        .setUseInference(useInference) //
+                        .setDisplayQueryPlan(displayPlan)//
+                        .setUseMockMongo(useMock) //
+                        .setMongoCollectionPrefix(prefix)//
+                        .setMongoDBName("dbname") //
+                        .setMongoHost("host") //
+                        .setMongoPort("1000") //
+                        .setAuths(auth) //
+                        .setMongoUser(user) //
+                        .build();
+        boolean caught = false;
+        try {
+            // Should error on this line due to missing password.
+            MongoClient mongoClient = MongoConnectorFactory.getMongoClient(conf);
+            fail("Did not throw an error for missing password.");
+            mongoClient.close(); // Won't reach here, this avoids a compiler warning.
+        } catch (org.apache.commons.configuration.ConfigurationRuntimeException e) {
+            assertTrue("Expected error message containing 'password', said this instead:" //
+                            + e.getMessage(), e.getMessage().toLowerCase().contains("password"));
+        }
+
+    }
 }
