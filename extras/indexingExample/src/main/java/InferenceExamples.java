@@ -36,11 +36,7 @@ import org.apache.rya.rdftriplestore.RdfCloudTripleStore;
 import org.apache.rya.rdftriplestore.inference.InferenceEngineException;
 import org.apache.rya.sail.config.RyaSailFactory;
 import org.apache.zookeeper.ClientCnxn;
-import org.openrdf.model.Namespace;
-import org.openrdf.model.URI;
-import org.openrdf.model.ValueFactory;
 import org.openrdf.model.vocabulary.OWL;
-import org.openrdf.model.vocabulary.RDF;
 import org.openrdf.model.vocabulary.RDFS;
 import org.openrdf.query.BindingSet;
 import org.openrdf.query.MalformedQueryException;
@@ -53,7 +49,6 @@ import org.openrdf.query.TupleQueryResultHandlerException;
 import org.openrdf.query.Update;
 import org.openrdf.query.UpdateExecutionException;
 import org.openrdf.repository.RepositoryException;
-import org.openrdf.repository.RepositoryResult;
 import org.openrdf.repository.sail.SailRepository;
 import org.openrdf.repository.sail.SailRepositoryConnection;
 import org.openrdf.sail.Sail;
@@ -79,7 +74,7 @@ public class InferenceExamples {
 	    private static final String MONGO_INSTANCE_URL = "localhost";
 	    private static final String MONGO_INSTANCE_PORT = "27017";
 	    private static final String MongoUserName="usern";
-	    private static final String MongoUserPassword="passwd";
+	    private static final String MongoUserPswd="passwd";
 
 	    public static void setupLogging() {
 	        final Logger rootLogger = LogManager.getRootLogger();
@@ -163,7 +158,7 @@ public class InferenceExamples {
 	        } else {
 	            // User name and password must be filled in:
 	            builder = builder.setMongoUser(MongoUserName)
-	                             .setMongoPassword(MongoUserPassword)
+	                             .setMongoPassword(MongoUserPswd)
 	                             .setMongoHost(MONGO_INSTANCE_URL)
 	                             .setMongoPort(MONGO_INSTANCE_PORT);
 	        }
