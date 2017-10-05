@@ -29,6 +29,7 @@ import java.util.Optional;
 import org.apache.rya.api.domain.RyaStatement;
 import org.apache.rya.api.persist.RyaDAOException;
 import org.apache.rya.export.api.metadata.MergeParentMetadata;
+import org.apache.rya.export.api.metadata.ParentMetadataDoesNotExistException;
 import org.apache.rya.export.api.metadata.ParentMetadataExistsException;
 import org.apache.rya.export.api.store.AddStatementException;
 import org.apache.rya.export.api.store.ContainsStatementException;
@@ -130,9 +131,10 @@ public class MongoRyaStatementStore implements RyaStatementStore {
         MergeParentMetadata metadata = null;
         try {
             metadata = parentMetadataRepo.get();
-        } finally {
-            return Optional.ofNullable(metadata);
+        } catch (ParentMetadataDoesNotExistException e) {
+            throw new RuntimeException(e);
         }
+        return Optional.ofNullable(metadata);
     }
 
     @Override

@@ -33,10 +33,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import org.apache.rya.accumulo.mr.MRUtils;
-import org.apache.rya.reasoning.Fact;
-import org.apache.rya.reasoning.Schema;
-
 import org.apache.accumulo.minicluster.MiniAccumuloCluster;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.conf.Configured;
@@ -45,13 +41,16 @@ import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.util.Tool;
 import org.apache.hadoop.util.ToolRunner;
+import org.apache.rya.accumulo.mr.MRUtils;
+import org.apache.rya.reasoning.Fact;
+import org.apache.rya.reasoning.Schema;
 import org.openrdf.OpenRDFException;
 import org.openrdf.model.Resource;
 import org.openrdf.model.Statement;
 import org.openrdf.model.URI;
 import org.openrdf.model.Value;
-import org.openrdf.model.vocabulary.RDF;
 import org.openrdf.model.vocabulary.OWL;
+import org.openrdf.model.vocabulary.RDF;
 import org.openrdf.query.BindingSet;
 import org.openrdf.query.QueryLanguage;
 import org.openrdf.query.TupleQuery;
@@ -174,7 +173,9 @@ public class ConformanceTest extends Configured implements Tool {
             repo = new SailRepository(new MemoryStore());
             repo.initialize();
             RepositoryConnection conn = repo.getConnection();
-            conn.add(new FileInputStream(args[0]), "", inputFormat);
+            FileInputStream fileInput = new FileInputStream(args[0]);
+            conn.add(fileInput, "", inputFormat);
+            fileInput.close();
             conn.close();
         }
         // Otherwise, get a Rya repository
