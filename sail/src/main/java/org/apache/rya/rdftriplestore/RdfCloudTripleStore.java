@@ -1,13 +1,3 @@
-package org.apache.rya.rdftriplestore;
-
-import static com.google.common.base.Preconditions.checkNotNull;
-
-import org.openrdf.model.ValueFactory;
-import org.openrdf.model.impl.ValueFactoryImpl;
-import org.openrdf.sail.SailConnection;
-import org.openrdf.sail.SailException;
-import org.openrdf.sail.helpers.SailBase;
-
 /*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
@@ -26,8 +16,9 @@ import org.openrdf.sail.helpers.SailBase;
  * specific language governing permissions and limitations
  * under the License.
  */
+package org.apache.rya.rdftriplestore;
 
-
+import static com.google.common.base.Preconditions.checkNotNull;
 
 import org.apache.rya.api.RdfCloudTripleStoreConfiguration;
 import org.apache.rya.api.persist.RdfEvalStatsDAO;
@@ -37,23 +28,28 @@ import org.apache.rya.api.persist.joinselect.SelectivityEvalDAO;
 import org.apache.rya.rdftriplestore.inference.InferenceEngine;
 import org.apache.rya.rdftriplestore.namespace.NamespaceManager;
 import org.apache.rya.rdftriplestore.provenance.ProvenanceCollector;
+import org.openrdf.model.ValueFactory;
+import org.openrdf.model.impl.ValueFactoryImpl;
+import org.openrdf.sail.SailConnection;
+import org.openrdf.sail.SailException;
+import org.openrdf.sail.helpers.SailBase;
 
-public class RdfCloudTripleStore extends SailBase {
+public class RdfCloudTripleStore<C extends RdfCloudTripleStoreConfiguration> extends SailBase {
 
-    private RdfCloudTripleStoreConfiguration conf;
+    private C conf;
 
-    protected RyaDAO ryaDAO;
+    protected RyaDAO<C> ryaDAO;
     protected InferenceEngine inferenceEngine;
-    protected RdfEvalStatsDAO rdfEvalStatsDAO;
-    protected SelectivityEvalDAO selectEvalDAO;
+    protected RdfEvalStatsDAO<C> rdfEvalStatsDAO;
+    protected SelectivityEvalDAO<C> selectEvalDAO;
     private NamespaceManager namespaceManager;
     protected ProvenanceCollector provenanceCollector;
 
-    private ValueFactory vf = new ValueFactoryImpl();
+    private static final ValueFactory VF = new ValueFactoryImpl();
 
     @Override
     protected SailConnection getConnectionInternal() throws SailException {
-        return new RdfCloudTripleStoreConnection(this, conf.clone(), vf);
+        return new RdfCloudTripleStoreConnection<C>(this, (C) conf.clone(), VF);
     }
 
     @Override
@@ -71,7 +67,7 @@ public class RdfCloudTripleStore extends SailBase {
                 ryaDAO.setConf(this.conf);
                 ryaDAO.init();
             }
-        } catch (RyaDAOException e) {
+        } catch (final RyaDAOException e) {
             throw new SailException(e);
         }
 
@@ -99,14 +95,14 @@ public class RdfCloudTripleStore extends SailBase {
                 rdfEvalStatsDAO.destroy();
             }
             ryaDAO.destroy();
-        } catch (Exception e) {
+        } catch (final Exception e) {
             throw new SailException(e);
         }
     }
 
     @Override
     public ValueFactory getValueFactory() {
-        return vf;
+        return VF;
     }
 
     @Override
@@ -114,43 +110,43 @@ public class RdfCloudTripleStore extends SailBase {
         return true;
     }
 
-    public RdfCloudTripleStoreConfiguration getConf() {
+    public synchronized C getConf() {
         return conf;
     }
 
-    public void setConf(RdfCloudTripleStoreConfiguration conf) {
+    public synchronized void setConf(final C conf) {
         this.conf = conf;
     }
 
-    public RdfEvalStatsDAO getRdfEvalStatsDAO() {
+    public RdfEvalStatsDAO<C> getRdfEvalStatsDAO() {
         return rdfEvalStatsDAO;
     }
 
-    public void setRdfEvalStatsDAO(RdfEvalStatsDAO rdfEvalStatsDAO) {
+    public void setRdfEvalStatsDAO(final RdfEvalStatsDAO<C> rdfEvalStatsDAO) {
         this.rdfEvalStatsDAO = rdfEvalStatsDAO;
     }
 
-    public SelectivityEvalDAO getSelectEvalDAO() {
+    public SelectivityEvalDAO<C> getSelectEvalDAO() {
         return selectEvalDAO;
     }
 
-    public void setSelectEvalDAO(SelectivityEvalDAO selectEvalDAO) {
+    public void setSelectEvalDAO(final SelectivityEvalDAO<C> selectEvalDAO) {
         this.selectEvalDAO = selectEvalDAO;
     }
 
-    public RyaDAO getRyaDAO() {
+    public synchronized RyaDAO<C> getRyaDAO() {
         return ryaDAO;
     }
 
-    public void setRyaDAO(RyaDAO ryaDAO) {
+    public synchronized void setRyaDAO(final RyaDAO<C> ryaDAO) {
         this.ryaDAO = ryaDAO;
     }
 
-    public InferenceEngine getInferenceEngine() {
+    public synchronized InferenceEngine getInferenceEngine() {
         return inferenceEngine;
     }
 
-    public void setInferenceEngine(InferenceEngine inferenceEngine) {
+    public synchronized void setInferenceEngine(final InferenceEngine inferenceEngine) {
         this.inferenceEngine = inferenceEngine;
     }
 
@@ -158,16 +154,16 @@ public class RdfCloudTripleStore extends SailBase {
         return namespaceManager;
     }
 
-    public void setNamespaceManager(NamespaceManager namespaceManager) {
+    public void setNamespaceManager(final NamespaceManager namespaceManager) {
         this.namespaceManager = namespaceManager;
     }
 
     public ProvenanceCollector getProvenanceCollector() {
-		return provenanceCollector;
-	}
+        return provenanceCollector;
+    }
 
-	public void setProvenanceCollector(ProvenanceCollector provenanceCollector) {
-		this.provenanceCollector = provenanceCollector;
-	}
+    public void setProvenanceCollector(final ProvenanceCollector provenanceCollector) {
+        this.provenanceCollector = provenanceCollector;
+    }
 
 }

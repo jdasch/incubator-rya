@@ -25,6 +25,7 @@ import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.apache.accumulo.core.security.Authorizations;
 import org.apache.commons.io.IOUtils;
@@ -60,8 +61,8 @@ import com.mongodb.MongoClient;
 public final class MongoDBRyaDAO implements RyaDAO<MongoDBRdfConfiguration>{
     private static final Logger log = Logger.getLogger(MongoDBRyaDAO.class);
 
-    private boolean isInitialized = false;
-    private boolean flushEachUpdate = true;
+    private final AtomicBoolean isInitialized = new AtomicBoolean();
+    private final AtomicBoolean flushEachUpdate = new AtomicBoolean(true);
     private MongoDBRdfConfiguration conf;
     private final MongoClient mongoClient;
     private DB db;
@@ -95,12 +96,12 @@ public final class MongoDBRyaDAO implements RyaDAO<MongoDBRdfConfiguration>{
         this.mongoClient = mongoClient;
         conf.setMongoClient(mongoClient);
         auths = conf.getAuthorizations();
-        flushEachUpdate = conf.flushEachUpdate();
+        flushEachUpdate.set(conf.flushEachUpdate());
         init();
     }
 
     @Override
-    public void setConf(final MongoDBRdfConfiguration conf) {
+    public synchronized void setConf(final MongoDBRdfConfiguration conf) {
         this.conf = conf;
         auths = conf.getAuthorizations();
     }
@@ -119,13 +120,13 @@ public final class MongoDBRyaDAO implements RyaDAO<MongoDBRdfConfiguration>{
     }
 
     @Override
-    public MongoDBRdfConfiguration getConf() {
+    public synchronized MongoDBRdfConfiguration getConf() {
         return conf;
     }
 
     @Override
     public void init() throws RyaDAOException {
-        if (isInitialized) {
+        if (isInitialized.get()) {
             return;
         }
         secondaryIndexers = conf.getAdditionalIndexers();
@@ -151,20 +152,20 @@ public final class MongoDBRyaDAO implements RyaDAO<MongoDBRdfConfiguration>{
         } catch (final MongoDbBatchWriterException e) {
             throw new RyaDAOException("Error starting MongoDB batch writer", e);
         }
-        isInitialized = true;
+        isInitialized.set(true);
     }
 
     @Override
     public boolean isInitialized() throws RyaDAOException {
-        return isInitialized;
+        return isInitialized.get();
     }
 
     @Override
     public void destroy() throws RyaDAOException {
-        if (!isInitialized) {
+        if (!isInitialized.get()) {
             return;
         }
-        isInitialized = false;
+        isInitialized.set(false);
         flush();
         try {
             mongoDbBatchWriter.shutdown();
@@ -187,7 +188,7 @@ public final class MongoDBRyaDAO implements RyaDAO<MongoDBRdfConfiguration>{
                 final DBObject obj = storageStrategy.serialize(statement);
                 try {
                     mongoDbBatchWriter.addObjectToQueue(obj);
-                    if (flushEachUpdate) {
+                    if (flushEachUpdate.get()) {
                         flush();
                     }
                 } catch (final MongoDbBatchWriterException e) {
@@ -231,7 +232,7 @@ public final class MongoDBRyaDAO implements RyaDAO<MongoDBRdfConfiguration>{
         }
         try {
             mongoDbBatchWriter.addObjectsToQueue(dbInserts);
-            if (flushEachUpdate) {
+            if (flushEachUpdate.get()) {
                 flush();
             }
         } catch (final MongoDbBatchWriterException e) {
