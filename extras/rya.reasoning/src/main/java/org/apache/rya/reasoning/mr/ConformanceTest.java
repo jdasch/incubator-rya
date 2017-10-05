@@ -174,7 +174,9 @@ public class ConformanceTest extends Configured implements Tool {
             repo = new SailRepository(new MemoryStore());
             repo.initialize();
             final RepositoryConnection conn = repo.getConnection();
-            conn.add(new FileInputStream(args[0]), "", inputFormat);
+            FileInputStream fileInput = new FileInputStream(args[0]);
+            conn.add(fileInput, "", inputFormat);
+            fileInput.close();
             conn.close();
         }
         // Otherwise, get a Rya repository

@@ -20,10 +20,9 @@ package org.apache.rya.benchmark.query;
 
 import static java.util.Objects.requireNonNull;
 
+import java.io.IOException;
 import java.io.InputStream;
 
-import edu.umd.cs.findbugs.annotations.DefaultAnnotation;
-import edu.umd.cs.findbugs.annotations.NonNull;
 import javax.xml.XMLConstants;
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBException;
@@ -36,6 +35,9 @@ import org.xml.sax.SAXException;
 
 import com.google.common.base.Supplier;
 import com.google.common.base.Suppliers;
+
+import edu.umd.cs.findbugs.annotations.DefaultAnnotation;
+import edu.umd.cs.findbugs.annotations.NonNull;
 
 /**
  * Unmarshalls instances of {@link QueriesBenchmarkConf}.
@@ -57,6 +59,14 @@ public final class QueriesBenchmarkConfReader {
                         return schemaFactory.newSchema( new StreamSource( schemaStream ) );
                     } catch (final SAXException e) {
                         throw new RuntimeException("Could not load the '" + SCHEMA_LOCATION + "' schema file. Make sure it is on the classpath.", e);
+                            } finally {
+                                if (schemaStream != null) {
+                                    try {
+                                        schemaStream.close();
+                                    } catch (IOException e) {
+                                        e.printStackTrace();
+                                    }
+                                }
                     }
                 }
             });
