@@ -8,9 +8,9 @@ package org.apache.rya.accumulo.pig;
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
- * 
+ *
  *   http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing,
  * software distributed under the License is distributed on an
  * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
@@ -26,6 +26,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -108,8 +109,8 @@ public class AccumuloStorage extends LoadFunc implements StoreFuncInterface, Ord
                 return null;
             }
 
-            Key key = (Key) reader.getCurrentKey();
-            Value value = (Value) reader.getCurrentValue();
+            final Key key = reader.getCurrentKey();
+            final Value value = reader.getCurrentValue();
             assert key != null && value != null;
 
             if (logger.isTraceEnabled()) {
@@ -117,7 +118,7 @@ public class AccumuloStorage extends LoadFunc implements StoreFuncInterface, Ord
             }
 
             // and wrap it in a tuple
-            Tuple tuple = TupleFactory.getInstance().newTuple(6);
+            final Tuple tuple = TupleFactory.getInstance().newTuple(6);
             tuple.set(0, new DataByteArray(key.getRow().getBytes()));
             tuple.set(1, new DataByteArray(key.getColumnFamily().getBytes()));
             tuple.set(2, new DataByteArray(key.getColumnQualifier().getBytes()));
@@ -128,7 +129,7 @@ public class AccumuloStorage extends LoadFunc implements StoreFuncInterface, Ord
                 logger.trace("Output tuple[" + tuple + "]");
             }
             return tuple;
-        } catch (InterruptedException e) {
+        } catch (final InterruptedException e) {
             throw new IOException(e.getMessage());
         }
     }
@@ -139,12 +140,12 @@ public class AccumuloStorage extends LoadFunc implements StoreFuncInterface, Ord
     }
 
     @Override
-    public void prepareToRead(RecordReader reader, PigSplit split) {
+    public void prepareToRead(final RecordReader reader, final PigSplit split) {
         this.reader = reader;
     }
 
     @Override
-    public void setLocation(String location, Job job) throws IOException {
+    public void setLocation(final String location, final Job job) throws IOException {
         if (logger.isDebugEnabled()) {
             logger.debug("Set Location[" + location + "] for job[" + job.getJobName() + "]");
         }
@@ -153,8 +154,8 @@ public class AccumuloStorage extends LoadFunc implements StoreFuncInterface, Ord
 
         if (!ConfiguratorBase.isConnectorInfoSet(AccumuloInputFormat.class, conf)) {
             try {
-                AccumuloInputFormat.setConnectorInfo(job, user, new PasswordToken(userP.getBytes()));
-            } catch (AccumuloSecurityException e) {
+                AccumuloInputFormat.setConnectorInfo(job, user, new PasswordToken(userP.getBytes(StandardCharsets.UTF_8)));
+            } catch (final AccumuloSecurityException e) {
                 throw new RuntimeException(e);
             }
             AccumuloInputFormat.setInputTableName(job, table);
@@ -165,8 +166,9 @@ public class AccumuloStorage extends LoadFunc implements StoreFuncInterface, Ord
                 AccumuloInputFormat.setMockInstance(job, inst);
             }
         }
-        if (columnFamilyColumnQualifierPairs.size() > 0)
+        if (columnFamilyColumnQualifierPairs.size() > 0) {
             AccumuloInputFormat.fetchColumns(job, columnFamilyColumnQualifierPairs);
+        }
         logger.info("Set ranges[" + ranges + "] for job[" + job.getJobName() + "] on table[" + table + "] " +
                 "for columns[" + columnFamilyColumnQualifierPairs + "] with authorizations[" + authorizations + "]");
 
@@ -176,24 +178,25 @@ public class AccumuloStorage extends LoadFunc implements StoreFuncInterface, Ord
         AccumuloInputFormat.setRanges(job, ranges);
     }
 
-    protected void setLocationFromUri(String uri, Job job) throws IOException {
+    protected void setLocationFromUri(final String uri, final Job job) throws IOException {
         // ex: accumulo://table1?instance=myinstance&user=root&password=secret&zookeepers=127.0.0.1:2181&auths=PRIVATE,PUBLIC&columns=col1|cq1,col2|cq2&range=a|z&range=1|9&mock=true
         try {
-            if (!uri.startsWith("accumulo://"))
+            if (!uri.startsWith("accumulo://")) {
                 throw new Exception("Bad scheme.");
-            String[] urlParts = uri.split("\\?");
+            }
+            final String[] urlParts = uri.split("\\?");
             setLocationFromUriParts(urlParts);
 
-        } catch (Exception e) {
+        } catch (final Exception e) {
             throw new IOException("Expected 'accumulo://<table>[?instance=<instanceName>&user=<user>&password=<password>&zookeepers=<zookeepers>&auths=<authorizations>&[range=startRow|endRow[...],columns=[cf1|cq1,cf2|cq2,...]],mock=true(false)]': " + e.getMessage(), e);
         }
     }
 
-    protected void setLocationFromUriParts(String[] urlParts) {
+    protected void setLocationFromUriParts(final String[] urlParts) {
         String columns = "";
         if (urlParts.length > 1) {
-            for (String param : urlParts[1].split("&")) {
-                String[] pair = param.split("=");
+            for (final String param : urlParts[1].split("&")) {
+                final String[] pair = param.split("=");
                 if (pair[0].equals("instance")) {
                     inst = pair[1];
                 } else if (pair[0].equals("user")) {
@@ -207,7 +210,7 @@ public class AccumuloStorage extends LoadFunc implements StoreFuncInterface, Ord
                 } else if (pair[0].equals("columns")) {
                     columns = pair[1];
                 } else if (pair[0].equals("range")) {
-                    String[] r = pair[1].split("\\|");
+                    final String[] r = pair[1].split("\\|");
                     if (r.length == 2) {
                         addRange(new Range(r[0], r[1]));
                     } else {
@@ -219,7 +222,7 @@ public class AccumuloStorage extends LoadFunc implements StoreFuncInterface, Ord
                 addLocationFromUriPart(pair);
             }
         }
-        String[] parts = urlParts[0].split("/+");
+        final String[] parts = urlParts[0].split("/+");
         table = parts[1];
         tableName = new Text(table);
 
@@ -230,11 +233,11 @@ public class AccumuloStorage extends LoadFunc implements StoreFuncInterface, Ord
         }
 
         if (!columns.equals("")) {
-            for (String cfCq : columns.split(",")) {
+            for (final String cfCq : columns.split(",")) {
                 if (cfCq.contains("|")) {
-                    String[] c = cfCq.split("\\|");
-                    String cf = c[0];
-                    String cq = c[1];
+                    final String[] c = cfCq.split("\\|");
+                    final String cf = c[0];
+                    final String cq = c[1];
                     addColumnPair(cf, cq);
                 } else {
                     addColumnPair(cfCq, null);
@@ -243,53 +246,53 @@ public class AccumuloStorage extends LoadFunc implements StoreFuncInterface, Ord
         }
     }
 
-    protected void addColumnPair(String cf, String cq) {
+    protected void addColumnPair(final String cf, final String cq) {
         columnFamilyColumnQualifierPairs.add(new Pair<Text, Text>((cf != null) ? new Text(cf) : null, (cq != null) ? new Text(cq) : null));
     }
 
-    protected void addLocationFromUriPart(String[] pair) {
+    protected void addLocationFromUriPart(final String[] pair) {
 
     }
 
-    protected void addRange(Range range) {
+    protected void addRange(final Range range) {
         ranges.add(range);
     }
 
     @Override
-    public String relativeToAbsolutePath(String location, Path curDir) throws IOException {
+    public String relativeToAbsolutePath(final String location, final Path curDir) throws IOException {
         return location;
     }
 
     @Override
-    public void setUDFContextSignature(String signature) {
+    public void setUDFContextSignature(final String signature) {
 
     }
 
     /* StoreFunc methods */
     @Override
-    public void setStoreFuncUDFContextSignature(String signature) {
+    public void setStoreFuncUDFContextSignature(final String signature) {
 
     }
 
     @Override
-    public String relToAbsPathForStoreLocation(String location, Path curDir) throws IOException {
+    public String relToAbsPathForStoreLocation(final String location, final Path curDir) throws IOException {
         return relativeToAbsolutePath(location, curDir);
     }
 
     @Override
-    public void setStoreLocation(String location, Job job) throws IOException {
+    public void setStoreLocation(final String location, final Job job) throws IOException {
         conf = job.getConfiguration();
         setLocationFromUri(location, job);
 
         if (!conf.getBoolean(AccumuloOutputFormat.class.getSimpleName() + ".configured", false)) {
             try {
-                AccumuloOutputFormat.setConnectorInfo(job, user, new PasswordToken(userP.getBytes()));
-			} catch (AccumuloSecurityException e) {
+                AccumuloOutputFormat.setConnectorInfo(job, user, new PasswordToken(userP.getBytes(StandardCharsets.UTF_8)));
+			} catch (final AccumuloSecurityException e) {
 				throw new RuntimeException(e);
 			}
             AccumuloOutputFormat.setDefaultTableName(job, table);
             AccumuloOutputFormat.setZooKeeperInstance(job, inst, zookeepers);
-            BatchWriterConfig config = new BatchWriterConfig();
+            final BatchWriterConfig config = new BatchWriterConfig();
             config.setMaxLatency(10, TimeUnit.SECONDS);
             config.setMaxMemory(10 * 1000 * 1000);
             config.setMaxWriteThreads(10);
@@ -303,64 +306,64 @@ public class AccumuloStorage extends LoadFunc implements StoreFuncInterface, Ord
     }
 
     @Override
-    public void checkSchema(ResourceSchema schema) throws IOException {
+    public void checkSchema(final ResourceSchema schema) throws IOException {
         // we don't care about types, they all get casted to ByteBuffers
     }
 
     @Override
-    public void prepareToWrite(RecordWriter writer) {
+    public void prepareToWrite(final RecordWriter writer) {
         this.writer = writer;
     }
 
     @Override
-    public void putNext(Tuple t) throws ExecException, IOException {
-        Mutation mut = new Mutation(objToText(t.get(0)));
-        Text cf = objToText(t.get(1));
-        Text cq = objToText(t.get(2));
+    public void putNext(final Tuple t) throws ExecException, IOException {
+        final Mutation mut = new Mutation(objToText(t.get(0)));
+        final Text cf = objToText(t.get(1));
+        final Text cq = objToText(t.get(2));
 
         if (t.size() > 4) {
-            Text cv = objToText(t.get(3));
-            Value val = new Value(objToBytes(t.get(4)));
+            final Text cv = objToText(t.get(3));
+            final Value val = new Value(objToBytes(t.get(4)));
             if (cv.getLength() == 0) {
                 mut.put(cf, cq, val);
             } else {
                 mut.put(cf, cq, new ColumnVisibility(cv), val);
             }
         } else {
-            Value val = new Value(objToBytes(t.get(3)));
+            final Value val = new Value(objToBytes(t.get(3)));
             mut.put(cf, cq, val);
         }
 
         try {
             writer.write(tableName, mut);
-        } catch (InterruptedException e) {
+        } catch (final InterruptedException e) {
             throw new IOException(e);
         }
     }
 
-    private static Text objToText(Object o) {
+    private static Text objToText(final Object o) {
         return new Text(objToBytes(o));
     }
 
-    private static byte[] objToBytes(Object o) {
+    private static byte[] objToBytes(final Object o) {
         if (o instanceof String) {
-            String str = (String) o;
-            return str.getBytes();
+            final String str = (String) o;
+            return str.getBytes(StandardCharsets.UTF_8);
         } else if (o instanceof Long) {
-            Long l = (Long) o;
-            return l.toString().getBytes();
+            final Long l = (Long) o;
+            return l.toString().getBytes(StandardCharsets.UTF_8);
         } else if (o instanceof Integer) {
-            Integer l = (Integer) o;
-            return l.toString().getBytes();
+            final Integer l = (Integer) o;
+            return l.toString().getBytes(StandardCharsets.UTF_8);
         } else if (o instanceof Boolean) {
-            Boolean l = (Boolean) o;
-            return l.toString().getBytes();
+            final Boolean l = (Boolean) o;
+            return l.toString().getBytes(StandardCharsets.UTF_8);
         } else if (o instanceof Float) {
-            Float l = (Float) o;
-            return l.toString().getBytes();
+            final Float l = (Float) o;
+            return l.toString().getBytes(StandardCharsets.UTF_8);
         } else if (o instanceof Double) {
-            Double l = (Double) o;
-            return l.toString().getBytes();
+            final Double l = (Double) o;
+            return l.toString().getBytes(StandardCharsets.UTF_8);
         }
 
         // TODO: handle DataBag, Map<Object, Object>, and Tuple
@@ -369,19 +372,19 @@ public class AccumuloStorage extends LoadFunc implements StoreFuncInterface, Ord
     }
 
     @Override
-    public void cleanupOnFailure(String failure, Job job) {
+    public void cleanupOnFailure(final String failure, final Job job) {
     }
 
     @Override
-    public WritableComparable<?> getSplitComparable(InputSplit inputSplit) throws IOException {
+    public WritableComparable<?> getSplitComparable(final InputSplit inputSplit) throws IOException {
         //cannot get access to the range directly
-        AccumuloInputFormat.RangeInputSplit rangeInputSplit = (AccumuloInputFormat.RangeInputSplit) inputSplit;
-        ByteArrayOutputStream baos = new ByteArrayOutputStream();
-        DataOutputStream out = new DataOutputStream(baos);
+        final AccumuloInputFormat.RangeInputSplit rangeInputSplit = (AccumuloInputFormat.RangeInputSplit) inputSplit;
+        final ByteArrayOutputStream baos = new ByteArrayOutputStream();
+        final DataOutputStream out = new DataOutputStream(baos);
         rangeInputSplit.write(out);
         out.close();
-        DataInputStream stream = new DataInputStream(new ByteArrayInputStream(baos.toByteArray()));
-        Range range = new Range();
+        final DataInputStream stream = new DataInputStream(new ByteArrayInputStream(baos.toByteArray()));
+        final Range range = new Range();
         range.readFields(stream);
         stream.close();
         return range;

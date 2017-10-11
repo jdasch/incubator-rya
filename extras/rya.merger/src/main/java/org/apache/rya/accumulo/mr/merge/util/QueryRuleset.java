@@ -18,16 +18,18 @@
  */
 package org.apache.rya.accumulo.mr.merge.util;
 
-import java.io.BufferedReader;
-import java.io.FileReader;
+import java.io.File;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
 
+import org.apache.commons.io.FileUtils;
 import org.apache.log4j.Logger;
 import org.apache.rya.accumulo.mr.merge.CopyTool;
+import org.apache.rya.accumulo.mr.merge.util.QueryRuleset.QueryRulesetException;
 import org.apache.rya.api.RdfCloudTripleStoreConfiguration;
 import org.apache.rya.rdftriplestore.RdfCloudTripleStore;
 import org.apache.rya.rdftriplestore.inference.InferJoin;
@@ -430,14 +432,8 @@ public class QueryRuleset {
         query = conf.get(CopyTool.QUERY_STRING_PROP);
         final String queryFile = conf.get(CopyTool.QUERY_FILE_PROP);
         if (query == null && queryFile != null) {
-            try (final BufferedReader reader = new BufferedReader(new FileReader(queryFile))) {
-                final StringBuilder builder = new StringBuilder();
-                String line = reader.readLine();
-                while (line != null) {
-                    builder.append(line).append("\n");
-                    line = reader.readLine();
-                }
-                query = builder.toString();
+            try {
+                query = FileUtils.readFileToString(new File(queryFile), StandardCharsets.UTF_8);
                 conf.set(CopyTool.QUERY_STRING_PROP, query);
             }
             catch (final IOException e) {
