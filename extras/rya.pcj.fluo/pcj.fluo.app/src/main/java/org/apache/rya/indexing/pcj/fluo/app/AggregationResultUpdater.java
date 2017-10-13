@@ -38,6 +38,7 @@ import org.apache.fluo.api.client.TransactionBase;
 import org.apache.fluo.api.data.Bytes;
 import org.apache.log4j.Logger;
 import org.apache.rya.accumulo.utils.VisibilitySimplifier;
+import org.apache.rya.api.log.LogUtils;
 import org.apache.rya.indexing.pcj.fluo.app.query.AggregationMetadata;
 import org.apache.rya.indexing.pcj.fluo.app.query.AggregationMetadata.AggregationElement;
 import org.apache.rya.indexing.pcj.fluo.app.query.AggregationMetadata.AggregationType;
@@ -127,7 +128,7 @@ public class AggregationResultUpdater {
 
         log.trace(
                 "Transaction ID: " + tx.getStartTimestamp() + "\n" +
-                "Before Update: " + state.getBindingSet().toString() + "\n");
+                "Before Update: " + LogUtils.clean(state.getBindingSet().toString()) + "\n");
 
         // Update the visibilities of the result binding set based on the child's visibilities.
         final String oldVisibility = state.getVisibility();
@@ -147,7 +148,7 @@ public class AggregationResultUpdater {
 
         log.trace(
                 "Transaction ID: " + tx.getStartTimestamp() + "\n" +
-                "After Update:" + state.getBindingSet().toString() + "\n" );
+                "After Update:" + LogUtils.clean(state.getBindingSet().toString()) + "\n" );
 
         // Store the updated state. This will write on top of any old state that was present for the Group By values.
         tx.set(rowId, FluoQueryColumns.AGGREGATION_BINDING_SET, Bytes.of(AGG_STATE_SERDE.serialize(state)));

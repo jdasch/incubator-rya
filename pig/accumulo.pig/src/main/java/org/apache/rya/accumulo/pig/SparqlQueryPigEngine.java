@@ -7,6 +7,7 @@ import java.nio.charset.StandardCharsets;
 
 import org.apache.accumulo.core.client.Connector;
 import org.apache.accumulo.core.client.ZooKeeperInstance;
+import org.apache.accumulo.core.client.security.tokens.PasswordToken;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -15,6 +16,7 @@ import org.apache.pig.PigServer;
 import org.apache.rya.accumulo.AccumuloRdfConfiguration;
 import org.apache.rya.accumulo.AccumuloRdfEvalStatsDAO;
 import org.apache.rya.accumulo.AccumuloRyaDAO;
+import org.apache.rya.api.log.LogUtils;
 import org.apache.rya.rdftriplestore.evaluation.QueryJoinOptimizer;
 import org.apache.rya.rdftriplestore.evaluation.RdfCloudTripleStoreEvaluationStatistics;
 import org.apache.rya.rdftriplestore.inference.InferenceEngine;
@@ -65,7 +67,7 @@ public class SparqlQueryPigEngine {
     private SparqlToPigTransformVisitor sparqlToPigTransformVisitor;
     private PigServer pigServer;
     private InferenceEngine inferenceEngine = null;
-    private RdfCloudTripleStoreEvaluationStatistics rdfCloudTripleStoreEvaluationStatistics;
+    private RdfCloudTripleStoreEvaluationStatistics<AccumuloRdfConfiguration> rdfCloudTripleStoreEvaluationStatistics;
     private AccumuloRyaDAO ryaDAO;
     AccumuloRdfConfiguration conf = new AccumuloRdfConfiguration();
 
@@ -98,7 +100,7 @@ public class SparqlQueryPigEngine {
             final String user = sparqlToPigTransformVisitor.getUser();
             final String pass = sparqlToPigTransformVisitor.getPassword();
 
-            final Connector connector = new ZooKeeperInstance(instance, zoo).getConnector(user, pass.getBytes(StandardCharsets.UTF_8));
+            final Connector connector = new ZooKeeperInstance(instance, zoo).getConnector(user, new PasswordToken(pass.getBytes(StandardCharsets.UTF_8)));
 
             final String tablePrefix = sparqlToPigTransformVisitor.getTablePrefix();
             conf.setTablePrefix(tablePrefix);
@@ -122,7 +124,7 @@ public class SparqlQueryPigEngine {
                 rdfEvalStatsDAO.setConnector(connector);
 //                rdfEvalStatsDAO.setEvalTable(tablePrefix + RdfCloudTripleStoreConstants.TBL_EVAL_SUFFIX);
                 rdfEvalStatsDAO.init();
-                rdfCloudTripleStoreEvaluationStatistics = new RdfCloudTripleStoreEvaluationStatistics(conf, rdfEvalStatsDAO);
+                rdfCloudTripleStoreEvaluationStatistics = new RdfCloudTripleStoreEvaluationStatistics<AccumuloRdfConfiguration>(conf, rdfEvalStatsDAO);
             }
         }
     }
@@ -151,7 +153,7 @@ public class SparqlQueryPigEngine {
     public void runQuery(final String sparql, final String hdfsSaveLocation) throws IOException {
         Preconditions.checkNotNull(sparql, "Sparql query cannot be null");
         Preconditions.checkNotNull(hdfsSaveLocation, "Hdfs save location cannot be null");
-        logger.info("Running query[" + sparql + "]\n to Location[" + hdfsSaveLocation + "]");
+        logger.info("Running query[" + LogUtils.clean(sparql) + "]\n to Location[" + LogUtils.clean(hdfsSaveLocation) + "]");
         pigServer.deleteFile(hdfsSaveLocation);
         try {
             final String pigScript = generatePigScript(sparql);
