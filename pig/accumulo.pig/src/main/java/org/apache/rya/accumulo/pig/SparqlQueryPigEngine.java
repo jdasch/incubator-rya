@@ -17,6 +17,7 @@ import org.apache.rya.accumulo.AccumuloRdfConfiguration;
 import org.apache.rya.accumulo.AccumuloRdfEvalStatsDAO;
 import org.apache.rya.accumulo.AccumuloRyaDAO;
 import org.apache.rya.api.log.LogUtils;
+import org.apache.rya.api.path.PathUtils;
 import org.apache.rya.rdftriplestore.evaluation.QueryJoinOptimizer;
 import org.apache.rya.rdftriplestore.evaluation.RdfCloudTripleStoreEvaluationStatistics;
 import org.apache.rya.rdftriplestore.inference.InferenceEngine;
@@ -197,7 +198,7 @@ public class SparqlQueryPigEngine {
             Preconditions.checkArgument(args.length == 7, "Usage: java -cp <jar>:$PIG_LIB <class> sparqlFile hdfsSaveLocation cbinstance cbzk cbuser cbpassword rdfTablePrefix.\n " +
                     "Sample command: java -cp java -cp cloudbase.pig-2.0.0-SNAPSHOT-shaded.jar:/usr/local/hadoop-etc/hadoop-0.20.2/hadoop-0.20.2-core.jar:/srv_old/hdfs-tmp/pig/pig-0.9.2/pig-0.9.2.jar:$HADOOP_HOME/conf org.apache.rya.accumulo.pig.SparqlQueryPigEngine " +
                     "tstSpqrl.query temp/engineTest stratus stratus13:2181 root password l_");
-            final String sparql = FileUtils.readFileToString(new File(args[0]), StandardCharsets.UTF_8);
+            final String sparql = FileUtils.readFileToString(new File(PathUtils.clean(args[0])), StandardCharsets.UTF_8);
             final String hdfsSaveLocation = args[1];
             final SparqlToPigTransformVisitor visitor = new SparqlToPigTransformVisitor();
             visitor.setTablePrefix(args[6]);
