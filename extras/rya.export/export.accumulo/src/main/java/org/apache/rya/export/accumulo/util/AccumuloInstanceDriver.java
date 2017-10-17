@@ -350,7 +350,9 @@ public class AccumuloInstanceDriver {
             final String key = entry.getKey();
             final String value = entry.getValue();
             final String argument = "-D" + key + "=" + value;
-            log.info(argument);
+            if (!key.equals(MRUtils.AC_PWD_PROP)) {
+                log.info(argument);
+            }
             config.set(key, value);
         }
 
