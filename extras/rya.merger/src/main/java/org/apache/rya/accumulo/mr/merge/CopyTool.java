@@ -233,23 +233,23 @@ public class CopyTool extends AbstractDualInstanceAccumuloMRTool {
     public void setup() throws Exception {
         super.init();
 
-        tempDir = conf.get("hadoop.tmp.dir", null);
+        tempDir = PathUtils.clean(conf.get("hadoop.tmp.dir", null));
         if (tempDir == null) {
             throw new Exception("Invalid hadoop temp directory. \"hadoop.tmp.dir\" could not be found in the configuration.");
         }
 
         useCopyFileOutput = conf.getBoolean(USE_COPY_FILE_OUTPUT, false);
         baseOutputDir = tempDir + "/copy_tool_file_output/";
-        localBaseOutputDir = conf.get(COPY_FILE_OUTPUT_PATH, null);
+        localBaseOutputDir = PathUtils.clean(conf.get(COPY_FILE_OUTPUT_PATH, null));
         compressionType = conf.get(COPY_FILE_OUTPUT_COMPRESSION_TYPE, null);
         useCopyFileOutputDirectoryClear = conf.getBoolean(USE_COPY_FILE_OUTPUT_DIRECTORY_CLEAR, false);
-        localCopyFileImportDir = conf.get(COPY_FILE_IMPORT_DIRECTORY, null);
+        localCopyFileImportDir = PathUtils.clean(conf.get(COPY_FILE_IMPORT_DIRECTORY, null));
         baseImportDir = tempDir + "/copy_tool_import/";
 
         startTime = conf.get(MergeTool.START_TIME_PROP, null);
 
         if (!useCopyFileImport) {
-        	if (startTime != null) {
+            if (startTime != null) {
                 try {
                     final Date date = MergeTool.START_TIME_FORMATTER.parse(startTime);
                     log.info("Will copy all data after " + date);
@@ -652,6 +652,9 @@ public class CopyTool extends AbstractDualInstanceAccumuloMRTool {
 
         // With HDFS permissions on, we need to make sure the Accumulo user can read/move the files
         final FsShell shell = new FsShell(conf);
+        if (!fs.isDirectory(hdfsBaseWorkDir)) {
+            throw new IllegalArgumentException("Configured working directory is not a valid directory" + hdfsBaseWorkDir.toString());
+        }
         shell.run(new String[] {"-chmod", "777", hdfsBaseWorkDir.toString()});
         if (fs.exists(failures)) {
             fs.delete(failures, true);
