@@ -48,6 +48,7 @@ import org.apache.rya.accumulo.AccumuloRyaDAO;
 import org.apache.rya.accumulo.mr.MRUtils;
 import org.apache.rya.accumulo.mr.merge.MergeTool;
 import org.apache.rya.api.RdfCloudTripleStoreConstants;
+import org.apache.rya.api.path.PathUtils;
 import org.apache.rya.api.persist.RyaDAOException;
 
 import com.google.common.base.Preconditions;
@@ -196,7 +197,7 @@ public class AccumuloInstanceDriver {
      */
     private void copyHadoopHomeToTemp() throws IOException {
         if (IS_COPY_HADOOP_HOME_ENABLED && SystemUtils.IS_OS_WINDOWS) {
-            final String hadoopHomeEnv = System.getenv("HADOOP_HOME");
+            final String hadoopHomeEnv = PathUtils.clean(System.getenv("HADOOP_HOME"));
             if (hadoopHomeEnv != null) {
                 final File hadoopHomeDir = new File(hadoopHomeEnv);
                 if (hadoopHomeDir.exists()) {

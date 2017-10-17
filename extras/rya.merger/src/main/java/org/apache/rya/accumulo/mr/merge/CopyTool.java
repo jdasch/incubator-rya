@@ -101,6 +101,7 @@ import org.apache.rya.accumulo.mr.merge.util.ToolConfigUtils;
 import org.apache.rya.api.RdfCloudTripleStoreConstants;
 import org.apache.rya.api.RdfCloudTripleStoreUtils;
 import org.apache.rya.api.layout.TablePrefixLayoutStrategy;
+import org.apache.rya.api.path.PathUtils;
 import org.apache.rya.indexing.accumulo.ConfigUtils;
 
 import com.google.common.base.Joiner;
@@ -597,7 +598,7 @@ public class CopyTool extends AbstractDualInstanceAccumuloMRTool {
         }
         fs.setPermission(splitsPath, new FsPermission(FsAction.ALL, FsAction.ALL, FsAction.ALL));
 
-        final String userDir = System.getProperty("user.dir");
+        final String userDir = PathUtils.clean(System.getProperty("user.dir"));
         // The splits file has a symlink created in the user directory for some reason.
         // It might be better to copy the entire file for Windows but it doesn't seem to matter if
         // the user directory symlink is broken.
@@ -863,7 +864,7 @@ public class CopyTool extends AbstractDualInstanceAccumuloMRTool {
     public static void main(final String[] args) {
         final String log4jConfiguration = System.getProperties().getProperty("log4j.configuration");
         if (StringUtils.isNotBlank(log4jConfiguration)) {
-            final String parsedConfiguration = StringUtils.removeStart(log4jConfiguration, "file:");
+            final String parsedConfiguration = PathUtils.clean(StringUtils.removeStart(log4jConfiguration, "file:"));
             final File configFile = new File(parsedConfiguration);
             if (configFile.exists()) {
                 DOMConfigurator.configure(parsedConfiguration);
