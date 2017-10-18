@@ -124,7 +124,7 @@ under the License.
         <!-- the maven-release-plugin makes this recommendation, due to plugin bugs -->
         <maven.min-version>3.0.4</maven.min-version>
         
-        <fluo.version>1.0.0-incubating</fluo.version>
+        <fluo.version>1.1.0-incubating</fluo.version>
 
         <plexus.version>3.0.8</plexus.version>
         <thrift.version>0.9.1</thrift.version>
