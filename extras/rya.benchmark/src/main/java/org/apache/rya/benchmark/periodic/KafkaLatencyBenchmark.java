@@ -164,12 +164,17 @@ public class KafkaLatencyBenchmark implements AutoCloseable {
     }
 
     private String issueQuery() throws InstanceDoesNotExistException, RyaClientException {
-        final String sparql = "prefix time: <http://www.w3.org/2006/time#> "
-                + "select ?type (count(?obs) as ?total) where { "
-                + "    ?obs <uri:hasTime> ?time. "
-                + "    ?obs <uri:hasObsType> ?type "
-                + "} "
-                + "group by ?type";
+        // caleb 10/30/2017 query
+        final String sparql = "prefix time: <http://www.w3.org/2006/time#> select ?type ?obs ?loc where { "
+                + "    ?obs <uri:hasTime> ?time; <uri:hasObsType> ?type; <uri:hasLoc> ?loc }";
+
+        //original aggregation query
+//        final String sparql = "prefix time: <http://www.w3.org/2006/time#> "
+//                + "select ?type (count(?obs) as ?total) where { "
+//                + "    ?obs <uri:hasTime> ?time. "
+//                + "    ?obs <uri:hasObsType> ?type "
+//                + "} "
+//                + "group by ?type";
 
         logger.info("Query: {}", sparql);
         return client.getCreatePCJ().createPCJ(options.getRyaInstance(), sparql, ImmutableSet.of(ExportStrategy.KAFKA));
@@ -274,7 +279,28 @@ public class KafkaLatencyBenchmark implements AutoCloseable {
             consumer.subscribe(Arrays.asList(topic));
             while (!futureList.isEmpty()) {
                 final ConsumerRecords<String, VisibilityBindingSet> records = consumer.poll(500);  // check kafka at most twice a second.
-                handle(records);
+
+
+                // handle caleb 10/30/2017 query
+                //handle(records);
+                if(records.count() > 0) {
+                    logger.debug("Received {} records", records.count());
+                }
+                for(final ConsumerRecord<String, ? extends BindingSet> record: records){
+                    final BindingSet result = record.value();
+                    logger.debug("Received BindingSet: {}", result);
+
+                    final String type = result.getBinding("type").getValue().stringValue();
+                    //final long total = Long.parseLong(result.getBinding("total").getValue().stringValue());
+
+                    final Stat stat = typeToStatMap.get(type);
+                    if(stat == null) {
+                        logger.warn("Not expecting to receive type: {}", type);
+                    } else {
+                        stat.fluoTotal.incrementAndGet();
+                    }
+                }
+
             }
         } catch (final Exception e) {
             logger.warn("Exception occurred", e);
@@ -348,7 +374,8 @@ public class KafkaLatencyBenchmark implements AutoCloseable {
                 final long observationsPerIteration = observationsPerTypePerIteration * numTypes;
                 final long iterationOffset = i * observationsPerIteration;
                 logger.info("Generating {} Observations", observationsPerIteration);
-                final Iterable<Statement> statements = gen.generate(observationsPerTypePerIteration, numTypes, typePrefix, iterationOffset, ZonedDateTime.now());
+                //final Iterable<Statement> statements = gen.generate(observationsPerTypePerIteration, numTypes, typePrefix, iterationOffset, ZonedDateTime.now());
+                final Iterable<Statement> statements = gen.generateModified(observationsPerTypePerIteration, numTypes, typePrefix, iterationOffset, ZonedDateTime.now());
                 logger.info("Publishing {} Observations", observationsPerIteration);
                 final long t1 = System.currentTimeMillis();
                 loadStatements.loadStatements(ryaInstanceName, statements);

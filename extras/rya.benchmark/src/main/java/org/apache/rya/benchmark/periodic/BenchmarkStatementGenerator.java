@@ -87,4 +87,29 @@ public class BenchmarkStatementGenerator {
 
         return statements;
     }
+
+    public List<Statement> generateModified(final long numObservationsPerType, final int numTypes, final String typePrefix,
+            final long observationOffset, final ZonedDateTime zonedTime) {
+        final String time = zonedTime.format(DateTimeFormatter.ISO_INSTANT);
+        final Literal litTime = vf.createLiteral(dtf.newXMLGregorianCalendar(time));
+        final List<Statement> statements = Lists.newArrayList();
+
+        for (long i = 0; i < numObservationsPerType; i++) {
+            for (int j = 0; j < numTypes; j++) {
+                final long observationId = observationOffset + i * numTypes + j;
+                // final String obsId = "urn:obs_" + Long.toHexString(observationId) + "_" + observationId;
+                // final String obsId = "urn:obs_" + observationId;
+                final String obsId = "urn:obs_" + String.format("%020d", observationId);
+                final String type = typePrefix + j;
+                // logger.info(obsId + " " + type + " " + litTime);
+                statements.add(vf.createStatement(vf.createURI(obsId), vf.createURI("uri:hasTime"), litTime));
+                statements.add(vf.createStatement(vf.createURI(obsId), vf.createURI("uri:hasObsType"), vf.createLiteral(type)));
+                statements.add(vf.createStatement(vf.createURI(obsId), vf.createURI("uri:hasLoc"), vf.createLiteral("Loc_" + observationId)));
+            }
+        }
+
+        return statements;
+    }
+
+
 }
