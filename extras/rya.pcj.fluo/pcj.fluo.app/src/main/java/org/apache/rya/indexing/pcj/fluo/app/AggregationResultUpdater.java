@@ -24,7 +24,6 @@ import static java.util.Objects.requireNonNull;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.Serializable;
 import java.math.BigDecimal;
@@ -34,6 +33,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 
+import org.apache.commons.io.serialization.ValidatingObjectInputStream;
 import org.apache.fluo.api.client.TransactionBase;
 import org.apache.fluo.api.data.Bytes;
 import org.apache.log4j.Logger;
@@ -404,8 +404,26 @@ public class AggregationResultUpdater {
             final AggregationState state;
 
             final ByteArrayInputStream bais = new ByteArrayInputStream(bytes);
-            try(ObjectInputStream ois = new ObjectInputStream(bais)) {
-                final Object o = ois.readObject();
+            try(ValidatingObjectInputStream vois = new ValidatingObjectInputStream(bais)
+            //// this is how you find classes that you missed in the vois.accept() list, below.
+            // { @Override protected void invalidClassNameFound(String className) throws java.io.InvalidClassException {
+            // System.out.println("vois.accept(" + className + ".class, ");};};
+                        ) {
+                // These classes are allowed to be deserialized. Others throw InvalidClassException.
+                vois.accept(org.apache.rya.indexing.pcj.fluo.app.AggregationResultUpdater.AggregationState.class, //
+                                org.apache.rya.indexing.pcj.fluo.app.AggregationResultUpdater.AverageState.class, //
+                                java.util.HashMap.class, //
+                                java.math.BigInteger.class, //
+                                java.lang.Number.class, //
+                                java.math.BigDecimal.class, //
+                                org.openrdf.query.impl.MapBindingSet.class, //
+                                java.util.LinkedHashMap.class, //
+                                org.openrdf.query.impl.BindingImpl.class, //
+                                org.openrdf.model.impl.URIImpl.class, //
+                                org.openrdf.model.impl.LiteralImpl.class, //
+                                org.openrdf.model.impl.DecimalLiteralImpl.class);
+                vois.accept("[B"); // Array of Bytes
+                final Object o = vois.readObject();
                 if(o instanceof AggregationState) {
                     state = (AggregationState)o;
                 } else {
