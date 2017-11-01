@@ -39,7 +39,7 @@ import org.openrdf.model.vocabulary.RDFS;
 import org.openrdf.model.vocabulary.SKOS;
 
 public class SchemaTest implements Serializable {
-    private static final long serialVersionUID = 1L;
+    private static final long serialVersionUID = -3616030386119902719L;
 
     URI lubm(String s) {
         return TestUtils.uri("http://swat.cse.lehigh.edu/onto/univ-bench.owl", s);
