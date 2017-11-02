@@ -24,12 +24,18 @@ under the License.
     String infer=request.getParameter("infer");
     String auth=request.getParameter("auth");
     String vis=request.getParameter("vis");
-	String resultFormat = request.getParameter("emit");
+    String resultFormat = request.getParameter("emit");
     String padding = request.getParameter("padding");
 
     if(sparql != null){
-        String sparqlEnc = URLEncoder.encode(sparql,"UTF-8");
-        String urlTo = "queryrdf?query.infer="+infer+"&query.auth="+auth+"&conf.cv="+vis+"&query.resultformat="+resultFormat+"&padding="+padding+"&query="+sparqlEnc;
+        String urlTo = 
+        "queryrdf?query.infer="+URLEncoder.encode(infer,"UTF-8")
+        +"&query.auth="+URLEncoder.encode(auth,"UTF-8")
+        +"&conf.cv="+URLEncoder.encode(vis,"UTF-8")
+        +"&query.resultformat="+URLEncoder.encode(resultFormat,"UTF-8")
+        +"&padding="+URLEncoder.encode(padding,"UTF-8")
+        +"&query="+URLEncoder.encode(sparql,"UTF-8");
+
         response.sendRedirect(urlTo);
     }
 %>
