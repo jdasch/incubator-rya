@@ -43,7 +43,6 @@ import org.apache.rya.indexing.pcj.fluo.app.query.AggregationMetadata;
 import org.apache.rya.indexing.pcj.fluo.app.query.AggregationMetadata.AggregationElement;
 import org.apache.rya.indexing.pcj.fluo.app.query.AggregationMetadata.AggregationType;
 import org.apache.rya.indexing.pcj.fluo.app.query.FluoQueryColumns;
-import org.apache.rya.indexing.pcj.fluo.app.util.RowKeyUtil;
 import org.apache.rya.indexing.pcj.storage.accumulo.VariableOrder;
 import org.apache.rya.indexing.pcj.storage.accumulo.VisibilityBindingSet;
 import org.openrdf.model.Literal;
@@ -66,7 +65,7 @@ import edu.umd.cs.findbugs.annotations.NonNull;
  * Updates the results of an Aggregate node when its child has added a new Binding Set to its results.
  */
 @DefaultAnnotation(NonNull.class)
-public class AggregationResultUpdater {
+public class AggregationResultUpdater extends AbstractNodeUpdater {
     private static final Logger log = Logger.getLogger(AggregationResultUpdater.class);
 
     private static final AggregationStateSerDe AGG_STATE_SERDE = new ObjectSerializationAggregationStateSerDe();
@@ -105,7 +104,7 @@ public class AggregationResultUpdater {
         // The Row ID for the Aggregation State that needs to be updated is defined by the Group By variables.
         final String aggregationNodeId = aggregationMetadata.getNodeId();
         final VariableOrder groupByVars = aggregationMetadata.getGroupByVariableOrder();
-        final Bytes rowId = RowKeyUtil.makeRowKey(aggregationNodeId, groupByVars, childBindingSet);
+        final Bytes rowId = makeRowKey(aggregationNodeId, groupByVars, childBindingSet);
 
         // Load the old state from the bytes if one was found; otherwise initialize the state.
         final Optional<Bytes> stateBytes = Optional.ofNullable( tx.get(rowId, FluoQueryColumns.AGGREGATION_BINDING_SET) );
