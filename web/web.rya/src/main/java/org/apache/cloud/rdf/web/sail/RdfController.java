@@ -25,6 +25,7 @@ import static org.apache.rya.api.RdfCloudTripleStoreConstants.VALUE_FACTORY;
 
 import java.io.IOException;
 import java.io.StringReader;
+import java.net.URLEncoder;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Timer;
@@ -34,10 +35,10 @@ import javax.servlet.ServletOutputStream;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import org.apache.rya.api.security.SecurityProvider;
+import org.apache.commons.lang3.StringEscapeUtils;
 import org.apache.rya.api.RdfCloudTripleStoreConfiguration;
+import org.apache.rya.api.security.SecurityProvider;
 import org.apache.rya.rdftriplestore.RdfCloudTripleStoreConnection;
-
 import org.openrdf.model.Resource;
 import org.openrdf.model.Statement;
 import org.openrdf.query.BindingSet;
@@ -99,9 +100,11 @@ public class RdfController {
                          @RequestParam(value = "nullout", required = false) String nullout,
                          @RequestParam(value = RdfCloudTripleStoreConfiguration.CONF_RESULT_FORMAT, required = false) String emit,
                          @RequestParam(value = "padding", required = false) String padding,
-                         @RequestParam(value = "callback", required = false) String callback,
+                    @RequestParam(value = "callback", required = false) String callback,
                          HttpServletRequest request,
                          HttpServletResponse response) {
+        // WARNING: if you add to the above request variables,
+        // Be sure to validate and encode since they come from the outside and could contain odd damaging character sequences.
         SailRepositoryConnection conn = null;
 		final Thread queryThread = Thread.currentThread();
 		auth = StringUtils.arrayToCommaDelimitedString(provider.getUserAuths(request));
@@ -127,7 +130,8 @@ public class RdfController {
             Boolean requestedFormat = !StringUtils.isEmpty(emit);
 
             if (requestedCallback) {
-                os.print(callback + "(");
+                // Less restrictive: StringEscapeUtils.escapeHtml4(callback)
+                os.print(URLEncoder.encode(callback, "UTF-8") + "(");
             }
 
             if (!isBlankQuery) {
@@ -270,7 +274,7 @@ public class RdfController {
         try {
             update.execute();
         } catch (UpdateExecutionException e) {
-            os.print(String.format("Update could not be successfully completed for query: %s\n\n", query));
+            os.print(String.format("Update could not be successfully completed for query: %s\n\n", StringEscapeUtils.escapeHtml4(query)));
             os.print(String.format("\n\n%s", e.getLocalizedMessage()));
         }
 
