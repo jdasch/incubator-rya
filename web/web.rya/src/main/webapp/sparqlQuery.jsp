@@ -20,20 +20,22 @@ under the License.
 <%@ page contentType="text/html; charset=iso-8859-1" language="java" %>
 <%@ page import="java.net.*" %>
 <%
-    String sparql=request.getParameter("sparql");
-    String infer=request.getParameter("infer");
-    String auth=request.getParameter("auth");
-    String vis=request.getParameter("vis");
-    String resultFormat = request.getParameter("emit");
-    String padding = request.getParameter("padding");
+    String x;
+    String sparql=(x=request.getParameter("sparql"))==null?"":x;
 
-    if(sparql != null){
-        String urlTo = 
-        "queryrdf?query.infer="+URLEncoder.encode(infer,"UTF-8")
-        +"&query.auth="+URLEncoder.encode(auth,"UTF-8")
-        +"&conf.cv="+URLEncoder.encode(vis,"UTF-8")
-        +"&query.resultformat="+URLEncoder.encode(resultFormat,"UTF-8")
-        +"&padding="+URLEncoder.encode(padding,"UTF-8")
+    if(sparql.length() > 0 ) {
+        String infer = (x=request.getParameter("infer"))==null?"":x;
+        String auth = (x=request.getParameter("auth"))==null?"":x;
+        String vis = (x=request.getParameter("vis"))==null?"":x;
+        String resultFormat = (x=request.getParameter("emit"))==null?"":x;
+        String padding = (x=request.getParameter("padding"))==null?"":x;
+
+        String urlTo = //
+        "queryrdf?query.infer="+URLEncoder.encode(infer,"UTF-8") //
+        +"&query.auth="+URLEncoder.encode(auth,"UTF-8") //
+        +"&conf.cv="+URLEncoder.encode(vis,"UTF-8") //
+        +"&query.resultformat="+URLEncoder.encode(resultFormat,"UTF-8") //
+        +"&padding="+URLEncoder.encode(padding,"UTF-8") //
         +"&query="+URLEncoder.encode(sparql,"UTF-8");
 
         response.sendRedirect(urlTo);
@@ -49,9 +51,7 @@ under the License.
     </tr>
   <tr>
     <td>SPARQL Query: </td>
-    <td><textarea cols="150" rows="50" name="sparql">
-Enter Sparql query here
-    </textarea></td>
+    <td><textarea cols="150" rows="50" name="sparql" placeholder="Enter SPARQL query here"></textarea></td>
   </tr>
   <tr>
       <td>Inferencing?(true/false)</td>

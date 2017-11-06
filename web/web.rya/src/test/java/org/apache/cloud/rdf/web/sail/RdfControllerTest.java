@@ -1,5 +1,7 @@
 package org.apache.cloud.rdf.web.sail;
 
+import static org.hamcrest.Matchers.containsString;
+
 /*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
@@ -22,6 +24,7 @@ package org.apache.cloud.rdf.web.sail;
 
 
 import static org.hamcrest.Matchers.equalToIgnoringWhiteSpace;
+import static org.hamcrest.Matchers.not;
 import static org.junit.Assert.assertTrue;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
@@ -119,6 +122,21 @@ public class RdfControllerTest {
                 .param("callback", "test"))
                 .andExpect(status().isOk())
                 .andExpect(content().string(equalToIgnoringWhiteSpace("test()")));
+    }
+
+    /**
+     * Make sure callback string does not have odd characters that could be xml or json.
+     * The author of this test could not determine the purpose of callback.
+     * @throws Exception
+     */
+    @Test
+    public void callbackEncodeCorrectly() throws Exception {
+        this.mockMvc.perform(get("/queryrdf") //
+                        .param("query", "") //
+                        .param("callback", "test<bad>or{bad}")) //
+                        .andExpect(status().isOk()) //
+                        .andExpect(content().string(not(containsString("<bad>")))) //
+                        .andExpect(content().string(not(containsString("{bad}"))));
     }
 
     @Test
