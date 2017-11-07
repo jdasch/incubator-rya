@@ -28,14 +28,12 @@ under the License.
         String auth = (x=request.getParameter("auth"))==null?"":x;
         String vis = (x=request.getParameter("vis"))==null?"":x;
         String resultFormat = (x=request.getParameter("emit"))==null?"":x;
-        String padding = (x=request.getParameter("padding"))==null?"":x;
 
         String urlTo = //
         "queryrdf?query.infer="+URLEncoder.encode(infer,"UTF-8") //
         +"&query.auth="+URLEncoder.encode(auth,"UTF-8") //
         +"&conf.cv="+URLEncoder.encode(vis,"UTF-8") //
         +"&query.resultformat="+URLEncoder.encode(resultFormat,"UTF-8") //
-        +"&padding="+URLEncoder.encode(padding,"UTF-8") //
         +"&query="+URLEncoder.encode(sparql,"UTF-8");
 
         response.sendRedirect(urlTo);
@@ -71,10 +69,6 @@ under the License.
 				<option value="xml">XML</option>
 				<option value="json">JSON</option>
 			</select></td>
-		</tr>
-		<tr>
-			<td>JSONP Padding</td>
-			<td><input type=text name="padding" size="20"></td>
 		</tr>
   <tr>
     <td>&nbsp;</td>
