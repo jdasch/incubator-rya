@@ -71,7 +71,7 @@ public class AccumuloInstanceDriver {
     private final boolean isParent;
 
     private final String user;
-    private final String password;
+    private final String userpwd;
     private final String instanceName;
     private final String tablePrefix;
     private final String auth;
@@ -125,18 +125,18 @@ public class AccumuloInstanceDriver {
      * @param isParent {@code true} if the instance is the parent/main instance. {@code false} if it's the
      * child.
      * @param user the user name tied to this instance.
-     * @param password the password for the user.
+     * @param userpwd the userpwd for the user.
      * @param instanceName the name of the instance.
      * @param tablePrefix the table prefix.
      * @param auth the comma-separated authorization list.
      */
-    public AccumuloInstanceDriver(final String driverName, final boolean isMock, final boolean shouldCreateIndices, final boolean isReadOnly, final boolean isParent, final String user, final String password, final String instanceName, final String tablePrefix, final String auth) {
+    public AccumuloInstanceDriver(final String driverName, final boolean isMock, final boolean shouldCreateIndices, final boolean isReadOnly, final boolean isParent, final String user, final String userpwd, final String instanceName, final String tablePrefix, final String auth) {
         this.driverName = Preconditions.checkNotNull(driverName);
         this.isMock = isMock;
         this.shouldCreateIndices = shouldCreateIndices;
         this.isReadOnly = isReadOnly;
         this.user = user;
-        this.password = password;
+        this.userpwd = userpwd;
         this.instanceName = instanceName;
         this.tablePrefix = tablePrefix;
         this.auth = auth;
@@ -166,7 +166,7 @@ public class AccumuloInstanceDriver {
             // Create and Run MiniAccumulo Cluster
             tempDir = Files.createTempDir();
             tempDir.deleteOnExit();
-            miniAccumuloCluster = new MiniAccumuloCluster(tempDir, password);
+            miniAccumuloCluster = new MiniAccumuloCluster(tempDir, userpwd);
             copyHadoopHomeToTemp();
             miniAccumuloCluster.getConfig().setInstanceName(instanceName);
             log.info(driverName + " MiniAccumulo instance starting up...");
@@ -176,13 +176,13 @@ public class AccumuloInstanceDriver {
             log.info("Creating connector to " + driverName + " MiniAccumulo instance...");
             zooKeeperInstance = new ZooKeeperInstance(miniAccumuloCluster.getClientConfig());
             instance = zooKeeperInstance;
-            connector = zooKeeperInstance.getConnector(user, new PasswordToken(password));
+            connector = zooKeeperInstance.getConnector(user, new PasswordToken(userpwd));
             log.info("Created connector to " + driverName + " MiniAccumulo instance");
         } else {
             log.info("Setting up " + driverName + " mock instance...");
             mockInstance = new MockInstance(instanceName);
             instance = mockInstance;
-            connector = mockInstance.getConnector(user, new PasswordToken(password));
+            connector = mockInstance.getConnector(user, new PasswordToken(userpwd));
             log.info("Created connector to " + driverName + " mock instance");
         }
         zooKeepers = instance.getZooKeepers();
@@ -255,7 +255,7 @@ public class AccumuloInstanceDriver {
         log.info("Creating " + driverName + " user and authorizations");
         secOps = connector.securityOperations();
         if (!user.equals(ROOT_USER_NAME)) {
-            secOps.createLocalUser(user, new PasswordToken(password));
+            secOps.createLocalUser(user, new PasswordToken(userpwd));
         }
         addAuths(auth);
         final TablePermission tablePermission = isReadOnly ? TablePermission.READ : TablePermission.WRITE;
@@ -300,7 +300,7 @@ public class AccumuloInstanceDriver {
         }
         configMap.put(MRUtils.AC_INSTANCE_PROP, instanceName);
         configMap.put(MRUtils.AC_USERNAME_PROP, user);
-        configMap.put(MRUtils.AC_PWD_PROP, password);
+        configMap.put(MRUtils.AC_PWD_PROP, userpwd);
         configMap.put(MRUtils.TABLE_PREFIX_PROPERTY, tablePrefix);
         configMap.put(MRUtils.AC_AUTH_PROP, auth);
         configMap.put(MRUtils.AC_ZK_PROP, zooKeepers != null ? zooKeepers : "localhost");
@@ -448,10 +448,10 @@ public class AccumuloInstanceDriver {
     }
 
     /**
-     * @return the password for the user.
+     * @return the userpwd for the user.
      */
     public String getPassword() {
-        return password;
+        return userpwd;
     }
 
     /**
