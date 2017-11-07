@@ -25,7 +25,6 @@ import static org.apache.rya.api.RdfCloudTripleStoreConstants.VALUE_FACTORY;
 
 import java.io.IOException;
 import java.io.StringReader;
-import java.net.URLEncoder;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Timer;
@@ -99,8 +98,6 @@ public class RdfController {
                          @RequestParam(value = RdfCloudTripleStoreConfiguration.CONF_INFER, required = false) String infer,
                          @RequestParam(value = "nullout", required = false) String nullout,
                          @RequestParam(value = RdfCloudTripleStoreConfiguration.CONF_RESULT_FORMAT, required = false) String emit,
-                         @RequestParam(value = "padding", required = false) String padding,
-                    @RequestParam(value = "callback", required = false) String callback,
                          HttpServletRequest request,
                          HttpServletResponse response) {
         // WARNING: if you add to the above request variables,
@@ -126,13 +123,7 @@ public class RdfController {
             Boolean isBlankQuery = StringUtils.isEmpty(query);
             ParsedOperation operation = QueryParserUtil.parseOperation(QueryLanguage.SPARQL, query, null);
 
-            Boolean requestedCallback = !StringUtils.isEmpty(callback);
             Boolean requestedFormat = !StringUtils.isEmpty(emit);
-
-            if (requestedCallback) {
-                // Less restrictive: StringEscapeUtils.escapeHtml4(callback)
-                os.print(URLEncoder.encode(callback, "UTF-8") + "(");
-            }
 
             if (!isBlankQuery) {
             	if (operation instanceof ParsedGraphQuery) {
@@ -159,10 +150,6 @@ public class RdfController {
                 } else {
                     throw new MalformedQueryException("Cannot process query. Query type not supported.");
                 }
-            }
-
-            if (requestedCallback) {
-                os.print(")");
             }
         } catch (Exception e) {
             e.printStackTrace();
