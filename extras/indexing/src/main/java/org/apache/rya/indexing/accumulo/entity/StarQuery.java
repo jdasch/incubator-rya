@@ -25,6 +25,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import org.apache.accumulo.core.client.TableNotFoundException;
+import org.apache.hadoop.io.Text;
 import org.apache.rya.accumulo.documentIndex.TextColumn;
 import org.apache.rya.api.domain.RyaType;
 import org.apache.rya.api.domain.RyaURI;
@@ -32,9 +34,6 @@ import org.apache.rya.api.resolver.RdfToRyaConversions;
 import org.apache.rya.api.resolver.RyaContext;
 import org.apache.rya.api.resolver.RyaTypeResolverException;
 import org.apache.rya.joinselect.AccumuloSelectivityEvalDAO;
-
-import org.apache.accumulo.core.client.TableNotFoundException;
-import org.apache.hadoop.io.Text;
 import org.openrdf.model.Value;
 import org.openrdf.query.BindingSet;
 import org.openrdf.query.algebra.StatementPattern;
@@ -477,7 +476,9 @@ public class StarQuery {
             }
 
         }
-
+        if (vars == null) {
+            throw new NullPointerException("vars is null so the list of statement pattern nodes must be empty: nodes.size()= " + nodes.size());
+        }
         if (vars.size() == 1) {
             return vars.iterator().next();
         } else if (vars.size() > 1) {
