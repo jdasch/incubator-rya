@@ -77,12 +77,12 @@ public class RyaDetailsSerializer {
                             com.google.common.base.Optional.class, //
                             java.util.Date.class, //
                             java.lang.Enum.class);
-            vois.accept("com.google.common.base.Present", "com.google.common.base.Present", //
-                            "com.google.common.collect.ImmutableMap$SerializedForm", "com.google.common.base.Absent", //
-                            "com.google.common.collect.ImmutableMap$SerializedForm", //
-                            "com.google.common.collect.ImmutableList$SerializedForm", //
-                            "com.google.common.base.Present", //
-                            "[Ljava.lang.Object;");
+            vois.accept("com.google.common.base.Present", //
+                        "com.google.common.base.Absent", //
+                        "com.google.common.collect.ImmutableMap$SerializedForm", //
+                        "com.google.common.collect.ImmutableBiMap$SerializedForm", //
+                        "com.google.common.collect.ImmutableList$SerializedForm", //
+                        "[Ljava.lang.Object;");
             vois.accept(Pattern.compile("org\\.apache\\.rya\\.api\\.instance\\.RyaDetails.*"));
 
             final Object o = vois.readObject();

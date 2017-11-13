@@ -422,7 +422,8 @@ public class AggregationResultUpdater {
                                 org.openrdf.query.impl.BindingImpl.class, //
                                 org.openrdf.model.impl.URIImpl.class, //
                                 org.openrdf.model.impl.LiteralImpl.class, //
-                                org.openrdf.model.impl.DecimalLiteralImpl.class);
+                                org.openrdf.model.impl.DecimalLiteralImpl.class, //
+                                org.openrdf.model.impl.IntegerLiteralImpl.class);
                 vois.accept("[B"); // Array of Bytes
                 final Object o = vois.readObject();
                 if(o instanceof AggregationState) {

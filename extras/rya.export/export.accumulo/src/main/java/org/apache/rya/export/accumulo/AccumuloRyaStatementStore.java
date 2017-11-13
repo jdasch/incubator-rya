@@ -43,7 +43,6 @@ import org.apache.rya.export.accumulo.parent.AccumuloParentMetadataRepository;
 import org.apache.rya.export.accumulo.util.AccumuloRyaUtils;
 import org.apache.rya.export.api.MergerException;
 import org.apache.rya.export.api.metadata.MergeParentMetadata;
-import org.apache.rya.export.api.metadata.ParentMetadataDoesNotExistException;
 import org.apache.rya.export.api.metadata.ParentMetadataExistsException;
 import org.apache.rya.export.api.store.AddStatementException;
 import org.apache.rya.export.api.store.ContainsStatementException;
@@ -185,9 +184,10 @@ public class AccumuloRyaStatementStore implements RyaStatementStore {
         MergeParentMetadata metadata = null;
         try {
             metadata = metadataRepo.get();
-        } catch (ParentMetadataDoesNotExistException e) {
-            // Originally this error was ignored, probably unintentionally, now it is re-thrown.
-            throw new RuntimeException(e);
+        } catch (final Exception e) {
+            // Catching any exception to ensure we always return Optional.ofNullable(metadata).
+            // Logging at the debug level if exceptional behavior needs to be investigated while deployed.
+            log.debug("Parent metadata missing or exceptional behavior occurred.", e);
         }
         return Optional.ofNullable(metadata);
     }

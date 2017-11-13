@@ -22,13 +22,9 @@ import static java.util.Objects.requireNonNull;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InvalidClassException;
-import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
-import java.io.ObjectStreamClass;
 
+import org.apache.commons.io.serialization.ValidatingObjectInputStream;
 import org.apache.fluo.api.data.Bytes;
 
 import edu.umd.cs.findbugs.annotations.DefaultAnnotation;
@@ -67,43 +63,29 @@ public class VisibilityBindingSetSerDe {
      */
     public VisibilityBindingSet deserialize(final Bytes bytes) throws Exception {
         requireNonNull(bytes);
-
-        try (final ObjectInputStream ois = new LookAheadObjectInputStream(new ByteArrayInputStream(bytes.toArray()))) {
-            final Object o = ois.readObject();
+        try (final ValidatingObjectInputStream vois = new ValidatingObjectInputStream(new ByteArrayInputStream(bytes.toArray()))) {
+            // Perform input validation.  Only the following classes are allowed to be deserialized.
+            vois.accept(org.apache.rya.indexing.pcj.storage.accumulo.VisibilityBindingSet.class,
+                    org.apache.rya.indexing.pcj.storage.accumulo.BindingSetDecorator.class,
+                    org.openrdf.query.impl.MapBindingSet.class,
+                    java.util.LinkedHashMap.class,
+                    java.util.HashMap.class,
+                    java.math.BigInteger.class,
+                    java.math.BigDecimal.class,
+                    java.lang.Number.class,
+                    org.openrdf.query.impl.BindingImpl.class,
+                    org.openrdf.model.impl.LiteralImpl.class,
+                    org.openrdf.model.impl.IntegerLiteralImpl.class,
+                    org.openrdf.model.impl.DecimalLiteralImpl.class,
+                    org.openrdf.model.impl.URIImpl.class,
+                    org.openrdf.query.algebra.evaluation.QueryBindingSet.class);
+            vois.accept("[B");
+            final Object o = vois.readObject();
             if(o instanceof VisibilityBindingSet) {
                 return (VisibilityBindingSet) o;
             } else {
                 throw new Exception("Deserialized Object is not a VisibilityBindingSet. Was: " + o.getClass());
             }
-        }
-    }
-
-    /**
-     * Only deserialize instances of our expected VisibilityBindingSet class or it's superclasses.
-     * Without this, ObjectInputStream will instantiate a class, running it's constructor,
-     * before we examine what it is. This is unsafe!
-     */
-    private class LookAheadObjectInputStream extends ObjectInputStream {
-
-        public LookAheadObjectInputStream(InputStream inputStream) throws IOException {
-            super(inputStream);
-        }
-
-        @Override
-        protected Class<?> resolveClass(ObjectStreamClass desc) throws IOException, ClassNotFoundException {
-            final String name = desc.getName();
-            System.out.println(name);
-            if (!name.equals(org.apache.rya.indexing.pcj.storage.accumulo.VisibilityBindingSet.class.getName())//
-                            && !name.equals(org.apache.rya.indexing.pcj.storage.accumulo.BindingSetDecorator.class.getName()) //
-                            && !name.equals(org.openrdf.query.impl.MapBindingSet.class.getName()) //
-                            && !name.equals(java.util.LinkedHashMap.class.getName()) //
-                            && !name.equals(java.util.HashMap.class.getName()) //
-                            && !name.equals(org.openrdf.query.impl.BindingImpl.class.getName()) //
-                            && !name.equals(org.openrdf.model.impl.LiteralImpl.class.getName()) //
-                            && !name.equals(org.openrdf.model.impl.URIImpl.class.getName())) {
-                throw new InvalidClassException(name, "Deserialized Object is not a VisibilityBindingSet.");
-            }
-            return super.resolveClass(desc);
         }
     }
 }
