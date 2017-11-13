@@ -29,7 +29,6 @@ import java.util.Optional;
 import org.apache.rya.api.domain.RyaStatement;
 import org.apache.rya.api.persist.RyaDAOException;
 import org.apache.rya.export.api.metadata.MergeParentMetadata;
-import org.apache.rya.export.api.metadata.ParentMetadataDoesNotExistException;
 import org.apache.rya.export.api.metadata.ParentMetadataExistsException;
 import org.apache.rya.export.api.store.AddStatementException;
 import org.apache.rya.export.api.store.ContainsStatementException;
@@ -39,6 +38,8 @@ import org.apache.rya.export.api.store.UpdateStatementException;
 import org.apache.rya.export.mongo.parent.MongoParentMetadataRepository;
 import org.apache.rya.mongodb.MongoDBRyaDAO;
 import org.apache.rya.mongodb.dao.SimpleMongoDBStorageStrategy;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.mongodb.BasicDBObject;
 import com.mongodb.Cursor;
@@ -51,6 +52,8 @@ import com.mongodb.MongoClient;
  * importing rya statements from MongoDB.
  */
 public class MongoRyaStatementStore implements RyaStatementStore {
+    private static final Logger logger = LoggerFactory.getLogger(MongoRyaStatementStore.class);
+
     public static final String TRIPLES_COLLECTION = "rya__triples";
     public static final String METADATA_COLLECTION = "parent_metadata";
     protected final SimpleMongoDBStorageStrategy adapter;
@@ -131,8 +134,8 @@ public class MongoRyaStatementStore implements RyaStatementStore {
         MergeParentMetadata metadata = null;
         try {
             metadata = parentMetadataRepo.get();
-        } catch (ParentMetadataDoesNotExistException e) {
-            throw new RuntimeException(e);
+        } catch (final Exception e) {
+            logger.info("Exception occurred retrieving Parent Metadata", e);
         }
         return Optional.ofNullable(metadata);
     }

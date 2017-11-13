@@ -27,6 +27,9 @@ import javax.xml.XMLConstants;
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBException;
 import javax.xml.bind.Unmarshaller;
+import javax.xml.parsers.DocumentBuilder;
+import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.transform.stream.StreamSource;
 import javax.xml.validation.Schema;
 import javax.xml.validation.SchemaFactory;
@@ -78,8 +81,11 @@ public final class QueriesBenchmarkConfReader {
      * @param xmlStream - The input stream holding the XML. (not null)
      * @return The {@link BenchmarkQueries} instance that was read from the stream.
      * @throws JAXBException There was a problem with the formatting of the XML.
+     * @throws ParserConfigurationException There was a problem creating the DocumentBuilder.
+     * @throws IOException There was a problem reading the xmlStream.
+     * @throws SAXException There was a problem parsing the xmlStream.
      */
-    public QueriesBenchmarkConf load(final InputStream xmlStream) throws JAXBException {
+    public QueriesBenchmarkConf load(final InputStream xmlStream) throws JAXBException, ParserConfigurationException, SAXException, IOException {
         requireNonNull(xmlStream);
 
         // Load the schema that describes the stream.
@@ -89,6 +95,9 @@ public final class QueriesBenchmarkConfReader {
         final JAXBContext context = JAXBContext.newInstance( QueriesBenchmarkConf.class );
         final Unmarshaller unmarshaller = context.createUnmarshaller();
         unmarshaller.setSchema(schema);
-        return (QueriesBenchmarkConf) unmarshaller.unmarshal(xmlStream);
+        final DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
+        dbf.setExpandEntityReferences(false);
+        final DocumentBuilder db = dbf.newDocumentBuilder();
+        return (QueriesBenchmarkConf) unmarshaller.unmarshal(db.parse(xmlStream));
     }
 }
