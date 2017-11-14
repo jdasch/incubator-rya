@@ -71,10 +71,12 @@ public class VisibilityBindingSetSerDe {
                     java.util.LinkedHashMap.class,
                     java.util.HashMap.class,
                     java.math.BigInteger.class,
+                    java.math.BigDecimal.class,
                     java.lang.Number.class,
                     org.openrdf.query.impl.BindingImpl.class,
                     org.openrdf.model.impl.LiteralImpl.class,
                     org.openrdf.model.impl.IntegerLiteralImpl.class,
+                    org.openrdf.model.impl.DecimalLiteralImpl.class,
                     org.openrdf.model.impl.URIImpl.class,
                     org.openrdf.query.algebra.evaluation.QueryBindingSet.class);
             vois.accept("[B");
