@@ -70,10 +70,14 @@ public class VisibilityBindingSetSerDe {
                     org.openrdf.query.impl.MapBindingSet.class,
                     java.util.LinkedHashMap.class,
                     java.util.HashMap.class,
+                    java.math.BigInteger.class,
+                    java.lang.Number.class,
                     org.openrdf.query.impl.BindingImpl.class,
                     org.openrdf.model.impl.LiteralImpl.class,
+                    org.openrdf.model.impl.IntegerLiteralImpl.class,
                     org.openrdf.model.impl.URIImpl.class,
                     org.openrdf.query.algebra.evaluation.QueryBindingSet.class);
+            vois.accept("[B");
             final Object o = vois.readObject();
             if(o instanceof VisibilityBindingSet) {
                 return (VisibilityBindingSet) o;
