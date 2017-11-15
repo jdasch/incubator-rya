@@ -94,7 +94,7 @@ public class AccumuloStorage extends LoadFunc implements StoreFuncInterface, Ord
     protected Text tableName;
     protected String auths;
     protected Authorizations authorizations;
-    protected List<Pair<Text, Text>> columnFamilyColumnQualifierPairs;
+    private final List<Pair<Text, Text>> columnFamilyColumnQualifierPairs = new LinkedList<Pair<Text, Text>>();
 
     protected Collection<Range> ranges = new ArrayList<Range>();
     protected boolean mock = false;
