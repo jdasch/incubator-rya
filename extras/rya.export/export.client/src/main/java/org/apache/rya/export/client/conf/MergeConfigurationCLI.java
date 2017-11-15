@@ -148,7 +148,7 @@ public class MergeConfigurationCLI {
             final DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
             dbf.setExpandEntityReferences(false);
             final DocumentBuilder db = dbf.newDocumentBuilder();
-            return (MergeToolConfiguration) unmarshaller.unmarshal(db.parse(configFile));
+            return unmarshaller.unmarshal(db.parse(configFile), MergeToolConfiguration.class).getValue();
         } catch (final JAXBException | IllegalArgumentException | ParserConfigurationException | SAXException | IOException JAXBe) {
             throw new MergeConfigurationException("Failed to create a config based on the provided configuration.", JAXBe);
         }
