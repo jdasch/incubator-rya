@@ -368,8 +368,8 @@ public class AccumuloRyaQueryEngine implements RyaQueryEngine<AccumuloRdfConfigu
                 ranges.add(range);
             }
             // no ranges
-            if (layout == null)
-                throw new IllegalArgumentException("No table layout specified");
+            if (layout == null || strategy == null)
+                throw new IllegalArgumentException("No table layout specified, or no statements.");
 
             final TripleRowRegex tripleRowRegex = strategy.buildRegex(regexSubject, regexPredicate, regexObject, null, null);
 

@@ -409,7 +409,9 @@ public class AccumuloRyaDAO implements RyaDAO<AccumuloRdfConfiguration>, RyaName
     public void dropAndDestroy() throws RyaDAOException {
         for (final String tableName : getTables()) {
             try {
-                drop(tableName);
+                if (tableName != null) {
+                    drop(tableName);
+                }
             } catch (final AccumuloSecurityException e) {
                 logger.error(e.getMessage());
                 throw new RyaDAOException(e);

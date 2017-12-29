@@ -164,7 +164,7 @@ public class RdfControllerTest {
     @Test
     public void updateQuery() throws Exception {
         this.mockMvc.perform(get("/queryrdf")
-                .param("query", "INSERT DATA { <http://mynamespace/ProductType1> <http://mynamespace#pred1> \"test\" }"))
+                .param("query", "INSERT \n DATA\n {\n <http://mynamespace/ProductType1> <http://mynamespace#pred1> \"test\" }"))
                 .andExpect(status().isOk());
 
         ValueFactory vf = repository.getValueFactory();

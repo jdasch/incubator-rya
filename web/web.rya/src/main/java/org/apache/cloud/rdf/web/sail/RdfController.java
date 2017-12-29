@@ -37,6 +37,7 @@ import javax.servlet.http.HttpServletResponse;
 import org.apache.commons.lang3.StringEscapeUtils;
 import org.apache.log4j.Logger;
 import org.apache.rya.api.RdfCloudTripleStoreConfiguration;
+import org.apache.rya.api.log.LogUtils;
 import org.apache.rya.api.security.SecurityProvider;
 import org.apache.rya.rdftriplestore.RdfCloudTripleStoreConnection;
 import org.openrdf.model.Resource;
@@ -275,8 +276,9 @@ public class RdfController {
         try {
             update.execute();
         } catch (final UpdateExecutionException e) {
-            os.print(String.format("Update could not be successfully completed for query: %s\n\n", StringEscapeUtils.escapeHtml4(query)));
-            log.error("Update could not be successfully completed for query: " + query, e);
+            final String message = "Update could not be successfully completed for query: ";
+            os.print(String.format(message + "%s\n\n", StringEscapeUtils.escapeHtml4(query)));
+            log.error(message + LogUtils.clean(query), e);
         }
 
         log.info(String.format("Update Time = %.3f\n", (System.currentTimeMillis() - startTime) / 1000.));
