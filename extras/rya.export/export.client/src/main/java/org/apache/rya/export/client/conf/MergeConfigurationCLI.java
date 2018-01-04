@@ -40,6 +40,7 @@ import org.apache.commons.cli.CommandLineParser;
 import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
+import org.apache.rya.api.utils.XmlFactoryConfiguration;
 import org.apache.rya.export.AccumuloMergeToolConfiguration;
 import org.apache.rya.export.DBType;
 import org.apache.rya.export.InstanceType;
@@ -146,7 +147,7 @@ public class MergeConfigurationCLI {
             final JAXBContext context = JAXBContext.newInstance(DBType.class, MergeToolConfiguration.class, AccumuloMergeToolConfiguration.class, TimestampMergePolicyConfiguration.class, MergePolicy.class, InstanceType.class);
             final Unmarshaller unmarshaller = context.createUnmarshaller();
             final DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
-            dbf.setExpandEntityReferences(false);
+            XmlFactoryConfiguration.harden(dbf);
             final DocumentBuilder db = dbf.newDocumentBuilder();
             return unmarshaller.unmarshal(db.parse(configFile), MergeToolConfiguration.class).getValue();
         } catch (final JAXBException | IllegalArgumentException | ParserConfigurationException | SAXException | IOException JAXBe) {

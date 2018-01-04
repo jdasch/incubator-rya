@@ -34,6 +34,7 @@ import javax.xml.transform.stream.StreamSource;
 import javax.xml.validation.Schema;
 import javax.xml.validation.SchemaFactory;
 
+import org.apache.rya.api.utils.XmlFactoryConfiguration;
 import org.xml.sax.SAXException;
 
 import com.google.common.base.Supplier;
@@ -96,7 +97,7 @@ public final class QueriesBenchmarkConfReader {
         final Unmarshaller unmarshaller = context.createUnmarshaller();
         unmarshaller.setSchema(schema);
         final DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
-        dbf.setExpandEntityReferences(false);
+        XmlFactoryConfiguration.harden(dbf);
         final DocumentBuilder db = dbf.newDocumentBuilder();
         return (QueriesBenchmarkConf) unmarshaller.unmarshal(db.parse(xmlStream));
     }
