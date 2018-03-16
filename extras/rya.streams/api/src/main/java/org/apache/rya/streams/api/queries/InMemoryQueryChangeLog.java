@@ -50,6 +50,7 @@ public class InMemoryQueryChangeLog implements QueryChangeLog {
         lock.lock();
         try {
             final int position = entries.size();
+            System.out.println("position=" + position + "  newchange=" + newChange.toString());
             entries.add( new ChangeLogEntry<>(position, newChange) );
         } finally {
             lock.unlock();
